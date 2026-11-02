@@ -4,24 +4,47 @@ import path from 'node:path'
 import { createHash } from 'node:crypto'
 import AdmZip from 'adm-zip'
 import type {
+  ConnectStrategy,
   IntegrationFinding,
-  IntegrationInstallResult,
   IntegrationReport,
+  PluginInput,
   PluginManifest,
-  ToolAiVerdict
+  PluginOutput,
+  Project,
+  ToolAiVerdict,
+  ToolConnectPlan,
+  ToolConnectResult
 } from '@shared/types'
 import type { Logger } from '../core/logger'
 import type { DiscoveryService } from './discovery'
-import type { AiService } from './ai'
+import type { AiService, ConnectDesign } from './ai'
 import type { PluginService } from './plugins'
 import type { SettingsService } from './settings'
+import type { ProjectService } from './projects'
 import { AppError } from '../core/errors'
-import { ensureDir, sanitizeSegment, uniquePath } from '../core/fs-guard'
+import { findNpmLauncher } from '../core/npm'
+import { assertInside, ensureDir, sanitizeSegment, uniquePath } from '../core/fs-guard'
+
+export interface Evidence {
+  fullName: string
+  repoName: string
+  description: string
+  readme: string
+  sourceDir: string
+  files: string[]
+  packageJsonText: string
+  packageJson: PackageJson | null
+  findings: IntegrationFinding[]
+  runtime: IntegrationReport['runtime']
+  bin: string | null
+  scripts: string[]
+  riskLevel: IntegrationReport['riskLevel']
+}
 
 interface CachedInspection {
   report: IntegrationReport
-  sourceDir: string
-  manifest: PluginManifest | null
+  evidence: Evidence
+  plan: ToolConnectPlan
   slug: string
 }
 
@@ -30,11 +53,23 @@ const MAX_EXTRACTED_BYTES = 150 * 1024 * 1024
 const MAX_FILES = 5000
 const ALLOWED_LICENSES = new Set(['MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'MPL-2.0', '0BSD', 'CC0-1.0', 'Unlicense'])
 const INSTALL_HOOKS = ['preinstall', 'install', 'postinstall', 'prepare', 'prepublish', 'prepublishOnly']
+const PACKAGE_NAME = /^(?:@[\w.-]+\/)?[\w.-]+(?:@[0-9][\w.+-]*)?$/
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]{0,60}$/
+const ENTRY_EXT = /\.(?:m|c)?js$/
+
+const STRATEGY_TITLES: Record<ConnectStrategy, string> = {
+  'local-node': 'اجرای محلی با Node داخلی برنامه',
+  'npm-package': 'اجرای بستهٔ npm با npx',
+  'local-python': 'اجرای اسکریپت پایتون',
+  'static-project': 'افزودن به‌عنوان پروژهٔ قابل ویرایش',
+  manual: 'اتصال دستی'
+}
 
 export class IntegrationService {
   private readonly discovery: DiscoveryService
   private readonly ai: AiService
   private readonly plugins: PluginService
+  private readonly projects: ProjectService
   private readonly settings: SettingsService
   private readonly logger: Logger
   private readonly paths: () => { tempDir: string; pluginsDir: string }
@@ -44,6 +79,7 @@ export class IntegrationService {
     discovery: DiscoveryService,
     ai: AiService,
     plugins: PluginService,
+    projects: ProjectService,
     settings: SettingsService,
     logger: Logger,
     paths: () => { tempDir: string; pluginsDir: string }
@@ -51,6 +87,7 @@ export class IntegrationService {
     this.discovery = discovery
     this.ai = ai
     this.plugins = plugins
+    this.projects = projects
     this.settings = settings
     this.logger = logger
     this.paths = paths
@@ -121,21 +158,29 @@ export class IntegrationService {
 
     const riskLevel: IntegrationReport['riskLevel'] =
       critical > 0 ? 'high' : warnings > 0 || repo.risk.level === 'high' ? 'medium' : 'low'
-    const runnable = runtime === 'node' && Boolean(bin) && fileCount <= MAX_FILES
-    const installable = runnable
-    let reason = runnable
-      ? 'این مخزن یک ابزار Node با entry قابل اجراست.'
-      : runtime === 'node'
-        ? 'entry قابل اجرا (bin) در package.json پیدا نشد؛ احتمالاً یک اپ/سایت است نه ابزار CLI.'
-        : runtime === 'web'
-          ? 'این مخزن یک اپ یا سایت است، نه ابزار خط فرمان.'
-          : `runtime «${runtime}» در این نسخه به‌صورت خودکار قابل ادغام نیست.`
+    const evidence: Evidence = {
+      fullName: repo.fullName,
+      repoName: repo.name,
+      description: repo.description,
+      readme: repo.readme,
+      sourceDir,
+      files,
+      packageJsonText,
+      packageJson,
+      findings,
+      runtime,
+      bin,
+      scripts,
+      riskLevel
+    }
+
+    const plan = await this.designPlan(evidence, aiVerdict)
+    const runnable = plan.strategy !== 'manual'
+    let reason = plan.rationale
     if (critical > 0) reason = 'یافتهٔ بحرانی وجود دارد؛ برای ادغام، تأیید صریح لازم است.'
     if (repo.license === null) reason = 'بدون مجوز مشخص؛ برای ادغام، تأیید صریح لازم است.'
 
-    const manifest = runnable
-      ? buildManifest(repo.fullName, repo.name, repo.description, packageJson?.version ?? '1.0.0', aiVerdict)
-      : null
+    const manifest = plan.actionable && plan.strategy !== 'static-project' ? this.buildManifest(evidence, plan) : null
     const report: IntegrationReport = {
       fullName: repo.fullName,
       repoUrl: repo.htmlUrl,
@@ -144,7 +189,7 @@ export class IntegrationService {
       riskLevel: critical > 0 ? 'high' : riskLevel,
       ai: aiVerdict,
       runtime,
-      installable,
+      installable: runnable,
       reason,
       packageName: packageJson?.name ?? null,
       bin: bin ?? null,
@@ -153,75 +198,406 @@ export class IntegrationService {
       sizeKb: repo.sizeKb,
       findings: dedupe(findings),
       proposedManifest: manifest,
-      usage: aiVerdict?.usage || (bin ? `node ${bin}` : '')
+      usage: planDemoUsage(plan),
+      connect: plan
     }
-    this.cache.set(fullName, { report, sourceDir, manifest, slug: sanitizeSegment(repo.name, 'tool') })
+    this.cache.set(fullName, { report, evidence, plan, slug: sanitizeSegment(repo.name, 'tool') })
     this.logger.info('INTEGRATION_INSPECTED', 'ریپو بازرسی شد.', {
       fullName,
       riskLevel: report.riskLevel,
-      installable,
-      ai: Boolean(aiVerdict)
+      strategy: plan.strategy,
+      ai: plan.usedAi
     })
     return report
   }
 
-  async install(fullName: string, force: boolean): Promise<IntegrationInstallResult> {
+  /** Performs the plan: registers a plugin, or imports the repo as an editable project. */
+  async connect(
+    fullName: string,
+    options: { force: boolean; installDependencies: boolean }
+  ): Promise<ToolConnectResult> {
     let cached = this.cache.get(fullName)
     if (!cached) {
       await this.inspect(fullName)
       cached = this.cache.get(fullName)
     }
-    if (!cached) throw new AppError('INTEGRATION_MISSING', 'نتیجهٔ بازرسی پیدا نشد؛ دوباره تلاش کن.')
-    const { report, sourceDir, manifest, slug } = cached
-    if (!manifest) throw new AppError('INTEGRATION_NOT_RUNNABLE', report.reason)
-    if (!force && report.riskLevel === 'high') {
+    if (!cached) throw new AppError('INTEGRATION_MISSING', 'نتیجهٔ بازرسی پیدا نشد؛ دوباره بازرسی کن.')
+    const { report, evidence, plan, slug } = cached
+    if (!plan.actionable) throw new AppError('INTEGRATION_NOT_CONNECTABLE', plan.rationale || 'این ابزار به‌صورت خودکار قابل اتصال نیست.')
+    if (plan.strategy === 'npm-package' && !findNpmLauncher('npx')) {
+      throw new AppError('NPM_NOT_FOUND', 'برای اجرای ابزارهای npm به Node و npm روی این سیستم نیاز است.')
+    }
+    if (!options.force && report.riskLevel === 'high') {
       throw new AppError('INTEGRATION_BLOCKED', 'ریسک این ابزار بالاست. برای ادامه، تأیید صریح لازم است.')
     }
-    if (!fs.existsSync(sourceDir)) throw new AppError('INTEGRATION_EXPIRED', 'فایل‌های موقت بازرسی پاک شده‌اند؛ دوباره بازرسی کن.')
+    if (!fs.existsSync(evidence.sourceDir)) {
+      throw new AppError('INTEGRATION_EXPIRED', 'فایل‌های موقت بازرسی پاک شده‌اند؛ دوباره بازرسی کن.')
+    }
+    return plan.strategy === 'static-project'
+      ? this.connectAsProject(evidence, plan, report, slug)
+      : this.connectAsPlugin(evidence, plan, report, slug, options.installDependencies)
+  }
 
+  private async connectAsPlugin(
+    evidence: Evidence,
+    plan: ToolConnectPlan,
+    report: IntegrationReport,
+    slug: string,
+    installDependencies: boolean
+  ): Promise<ToolConnectResult> {
+    const manifest = this.buildManifest(evidence, plan)
     const installedRoot = path.join(this.paths().pluginsDir, 'installed')
     ensureDir(installedRoot)
     const target = uniquePath(path.join(installedRoot, slug))
     ensureDir(target)
-    await copyTree(sourceDir, target, 0)
-    const wrapper = path.join(target, 'webforge-run.cjs')
-    fs.writeFileSync(wrapper, BUILD_WRAPPER, 'utf8')
+    const logs: string[] = [`اتصال با راهبرد ${STRATEGY_TITLES[plan.strategy]}.`]
+    if (plan.strategy !== 'npm-package') {
+      await copyTree(evidence.sourceDir, target, 0)
+      logs.push('فایل‌های منبع در پوشهٔ ابزار کپی شد.')
+    } else {
+      fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({ private: true, name: slug, version: '1.0.0' }, null, 2), 'utf8')
+      logs.push('بسته در اولین اجرا با npx از registry دریافت می‌شود.')
+    }
+
     let manifestName = manifest.name
     const existing = this.plugins.list().find((plugin) => plugin.name === manifestName)
-    if (existing) manifestName = `${manifestName.slice(0, 70)}-${hash(fullName).slice(0, 6)}`
-    const finalManifest: PluginManifest = {
-      ...manifest,
-      name: manifestName,
-      args: [wrapper, '{{arguments}}']
-    }
+    if (existing) manifestName = `${manifestName.slice(0, 70)}-${hash(evidence.fullName).slice(0, 6)}`
+    const finalManifest: PluginManifest = { ...manifest, name: manifestName }
     fs.writeFileSync(path.join(target, 'plugin.manifest.json'), JSON.stringify(finalManifest, null, 2), 'utf8')
-    fs.writeFileSync(
-      path.join(target, 'INTEGRATION.md'),
-      [
-        `# ${finalManifest.displayName}`,
-        '',
-        `منبع: ${report.repoUrl}`,
-        `مجوز: ${report.license ?? 'نامشخص'}`,
-        `ریسک: ${report.riskLevel}`,
-        '',
-        '## حکم بازرسی',
-        report.ai?.summary ?? report.reason,
-        '',
-        '## هشدارها',
-        ...report.findings.map((finding) => `- [${finding.severity}] ${finding.message}`),
-        '',
-        '## استفاده',
-        report.usage || 'طبق README مخزن.',
-        '',
-        '> این ابزار در همان کاربر اجرا می‌شود. برای ابزارهای ناشناس از VM جدا استفاده کن.'
-      ].join('\n'),
-      'utf8'
-    )
+    fs.writeFileSync(path.join(target, 'INTEGRATION.md'), this.integrationDoc(report, plan, evidence), 'utf8')
     const plugin = await this.plugins.addFromPath(target)
-    this.logger.info('INTEGRATION_INSTALLED', 'ابزار در فضای کاری ثبت شد.', { fullName, pluginId: plugin.id })
-    return { plugin, report }
+    logs.push(`ابزار «${plugin.displayName}» در فهرست ابزارها ثبت شد.`)
+
+    if (installDependencies && plan.needsDependencies && plan.strategy === 'local-node') {
+      try {
+        const deps = await this.plugins.installDependencies(plugin.id)
+        logs.push(deps.ok ? 'وابستگی‌های npm با --ignore-scripts نصب شد.' : `نصب وابستگی ناموفق بود (کد ${deps.exitCode}).`)
+        if (!deps.ok) logs.push(deps.logs.slice(-1500))
+      } catch (error) {
+        logs.push(`نصب وابستگی انجام نشد: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    } else if (plan.needsDependencies && plan.strategy === 'local-node') {
+      logs.push('وابستگی‌ها نصب نشده‌اند؛ از صفحهٔ ابزارها «نصب وابستگی» را بزن.')
+    }
+
+    this.logger.info('INTEGRATION_CONNECTED', 'ابزار به فضای کاری متصل شد.', {
+      fullName: evidence.fullName,
+      pluginId: plugin.id,
+      strategy: plan.strategy
+    })
+    return { strategy: plan.strategy, report, plugin, project: null, installedTo: target, logs }
   }
 
+  private async connectAsProject(
+    evidence: Evidence,
+    plan: ToolConnectPlan,
+    report: IntegrationReport,
+    slug: string
+  ): Promise<ToolConnectResult> {
+    const root = path.join(this.settings.get().projectsDir, 'from-github')
+    ensureDir(root)
+    const target = uniquePath(path.join(root, sanitizeSegment(slug, 'tool')))
+    ensureDir(target)
+    await copyTree(evidence.sourceDir, target, 0)
+    fs.writeFileSync(path.join(target, 'FROM-GITHUB.md'), this.integrationDoc(report, plan, evidence), 'utf8')
+    const project: Project = this.projects.register({
+      name: `${evidence.repoName} (GitHub)`.slice(0, 120),
+      dir: target,
+      type: 'static',
+      status: 'ready'
+    })
+    this.logger.info('INTEGRATION_PROJECT_IMPORTED', 'مخزن وب‌سایت به پروژهٔ قابل ویرایش تبدیل شد.', {
+      fullName: evidence.fullName,
+      projectId: project.id
+    })
+    return {
+      strategy: 'static-project',
+      report,
+      plugin: null,
+      project,
+      installedTo: target,
+      logs: [
+        'فایل‌های سایت در پوشهٔ پروژه‌ها کپی شد.',
+        `پروژهٔ «${project.name}» ساخته شد؛ در ویرایشگر بصری می‌توانی همهٔ بخش‌هایش را تغییر بدهی.`,
+        `مسیر: ${target}`
+      ]
+    }
+  }
+
+  private integrationDoc(report: IntegrationReport, plan: ToolConnectPlan, evidence: Evidence): string {
+    return [
+      `# ${evidence.repoName}`,
+      '',
+      `منبع: ${report.repoUrl}`,
+      `مجوز: ${report.license ?? 'نامشخص'}`,
+      `ریسک: ${report.riskLevel}`,
+      `راهبرد اتصال: ${STRATEGY_TITLES[plan.strategy]}${plan.usedAi ? ' (با تصمیم هوش مصنوعی)' : ' (تشخیص خودکار)'}`,
+      '',
+      '## حکم بازرسی',
+      report.ai?.summary ?? plan.rationale,
+      '',
+      '## مراحل انجام‌شده',
+      ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
+      '',
+      '## استفاده',
+      plan.demoArguments ? ` آرگومان نمونه: \`${plan.demoArguments}\`` : 'آرگومانی لازم ندارد.',
+      ...plan.inputs.map((input) => `- ${input.label} (${input.key})${input.required ? ' — الزامی' : ''}`),
+      '',
+      '## هشدارها',
+      ...report.findings.map((finding) => `- [${finding.severity}] ${finding.message}`),
+      '',
+      '> این ابزار در همان کاربر اجرا می‌شود. برای ابزارهای ناشناس از VM جدا استفاده کن.'
+    ].join('\n')
+  }
+
+  private buildManifest(evidence: Evidence, plan: ToolConnectPlan): PluginManifest {
+    const base = sanitizeSegment(evidence.repoName.toLowerCase(), 'tool').replace(/[^a-z0-9-_.]/g, '-')
+    return {
+      name: base.slice(0, 80),
+      displayName: evidence.repoName.slice(0, 100),
+      description: `${evidence.description || STRATEGY_TITLES[plan.strategy]}`.slice(0, 2000),
+      version: evidence.packageJson?.version ?? '1.0.0',
+      runtime: plan.strategy === 'npm-package' ? 'executable' : plan.strategy === 'local-python' ? 'python' : 'node',
+      command: plan.command,
+      args: plan.args,
+      cwd: '.',
+      inputs: plan.inputs,
+      outputs: plan.outputs,
+      permissions: plan.permissions,
+      timeoutSeconds: plan.timeoutSeconds,
+      icon: plan.strategy === 'static-project' ? 'globe' : 'terminal'
+    }
+  }
+
+  /** AI plan when available and trustworthy, deterministic heuristics otherwise. */
+  private async designPlan(evidence: Evidence, aiVerdict: ToolAiVerdict | null): Promise<ToolConnectPlan> {
+    if (this.settings.hasApiKey()) {
+      try {
+        const design = await this.ai.designConnect({
+          fullName: evidence.fullName,
+          description: evidence.description,
+          readme: evidence.readme,
+          packageJson: evidence.packageJsonText,
+          fileList: evidence.files,
+          findings: evidence.findings.map((finding) => `[${finding.severity}] ${finding.message}${finding.file ? ` (${finding.file})` : ''}`),
+          detectedRuntime: evidence.runtime,
+          detectedBin: evidence.bin,
+          scripts: evidence.scripts
+        })
+        const plan = this.normalizePlan(design, evidence)
+        if (plan) return plan
+        evidence.findings.push({ severity: 'info', message: 'طرح هوش مصنوعی با فایل‌های مخزن جور نشد؛ از تشخیص خودکار استفاده شد.' })
+      } catch (error) {
+        this.logger.warn('INTEGRATION_CONNECT_AI_SKIPPED', 'طرح اتصال هوش مصنوعی ناموفق بود.', {
+          fullName: evidence.fullName,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        evidence.findings.push({ severity: 'info', message: 'طرح اتصال هوش مصنوعی به نتیجه نرسید؛ تشخیص خودکار اعمال شد.' })
+      }
+    }
+    return this.heuristicPlan(evidence, aiVerdict)
+  }
+
+  /** Cross-checks every AI claim against the real files before trusting it. */
+  normalizePlan(design: ConnectDesign, evidence: Evidence): ToolConnectPlan | null {
+    const safeInputs = dedupeInputs(design.inputs)
+    const base: Omit<ToolConnectPlan, 'strategy' | 'actionable' | 'command' | 'entry' | 'args'> = {
+      title: STRATEGY_TITLES[design.strategy],
+      inputs: toPluginInputs(safeInputs),
+      outputs: toPluginOutputs(design.outputs),
+      permissions: {
+        network: design.permissions.network,
+        projectWrite: design.permissions.projectWrite,
+        environment: design.permissions.environment.filter((name) => ENV_NAME.test(name))
+      },
+      timeoutSeconds: design.timeoutSeconds,
+      needsDependencies: design.needsDependencies,
+      demoArguments: design.demoArguments.slice(0, 500),
+      rationale: design.rationale.slice(0, 1500) || STRATEGY_TITLES[design.strategy],
+      steps: design.steps.length > 0 ? design.steps.slice(0, 8) : [STRATEGY_TITLES[design.strategy]],
+      confidence: design.confidence,
+      usedAi: true
+    }
+
+    switch (design.strategy) {
+      case 'local-node': {
+        const entry = this.resolveSourceEntry(design.entry, evidence) ?? this.resolveSourceEntry(evidence.bin, evidence)
+        if (!entry) return null
+        return {
+          ...base,
+          strategy: 'local-node',
+          actionable: true,
+          command: entry,
+          entry,
+          args: commandArgs(safeInputs)
+        }
+      }
+      case 'npm-package': {
+        const name = (design.entry ?? evidence.packageJson?.name ?? '').trim()
+        if (!PACKAGE_NAME.test(name)) return null
+        return {
+          ...base,
+          strategy: 'npm-package',
+          actionable: true,
+          command: 'npx',
+          entry: name,
+          args: ['--yes', packageSpecifier(name), ...commandArgs(safeInputs)],
+          permissions: { ...base.permissions, network: true }
+        }
+      }
+      case 'local-python': {
+        const entry = this.resolveSourceEntry(design.entry, evidence, /\.py$/i)
+        if (!entry) return null
+        return { ...base, strategy: 'local-python', actionable: true, command: entry, entry, args: commandArgs(safeInputs) }
+      }
+      case 'static-project': {
+        const entry = this.resolveSourceEntry(design.entry ?? 'index.html', evidence, /\.(?:html?|md)$/i, true)
+        if (!entry) return null
+        return {
+          ...base,
+          strategy: 'static-project',
+          actionable: true,
+          command: '',
+          entry,
+          args: [],
+          inputs: [],
+          outputs: [],
+          needsDependencies: false,
+          steps: design.steps.length
+            ? design.steps
+            : ['فایل‌های سایت در پوشهٔ پروژه‌ها کپی می‌شود.', 'پروژه در فهرست پروژه‌ها ثبت می‌شود.', 'با ویرایشگر بصری می‌توانی متن، عکس و استایل هر بخش را تغییر بدهی.']
+        }
+      }
+      case 'manual':
+        return { ...base, strategy: 'manual', actionable: false, command: '', entry: design.entry ?? null, args: [], inputs: [], outputs: [] }
+      default:
+        return null
+    }
+  }
+
+  private resolveSourceEntry(
+    candidate: string | null | undefined,
+    evidence: Evidence,
+    extension: RegExp = ENTRY_EXT,
+    allowDirectory = false
+  ): string | null {
+    if (!candidate) return null
+    const normalized = candidate.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '')
+    if (!normalized || normalized.includes('..')) return null
+    if (!extension.test(normalized) && !allowDirectory) return null
+    try {
+      const full = assertInside(evidence.sourceDir, path.join(evidence.sourceDir, normalized))
+      const stat = fs.statSync(full)
+      if (stat.isFile()) return normalized
+      if (allowDirectory && stat.isDirectory()) return normalized
+    } catch {
+      return null
+    }
+    return null
+  }
+
+  heuristicPlan(evidence: Evidence, aiVerdict: ToolAiVerdict | null): ToolConnectPlan {
+    const binEntry = this.resolveSourceEntry(evidence.bin, evidence)
+    const packageName = evidence.packageJson?.name ?? null
+    const hasDependencies = Object.keys(evidence.packageJson?.dependencies ?? {}).length > 0
+    const singlePy = evidence.files.filter((file) => /\.py$/i.test(file))
+    const rootPy =
+      evidence.files.find((file) => /(^|\/)(cli|__main__|main|app|manage)\.py$/i.test(file)) ??
+      (singlePy.length === 1 ? singlePy[0] : undefined)
+    const siteIndex = evidence.files.find((file) => /(^|\/)index\.html?$/i.test(file))
+    const usage = aiVerdict?.usage ?? ''
+
+    const build = (
+      strategy: ConnectStrategy,
+      extra: Partial<ToolConnectPlan> & { command: string; entry: string | null; rationale: string }
+    ): ToolConnectPlan => ({
+      strategy,
+      actionable: strategy !== 'manual',
+      title: STRATEGY_TITLES[strategy],
+      args: [],
+      inputs: genericInputs(),
+      outputs: [],
+      permissions: { network: strategy === 'npm-package', projectWrite: true, environment: [] },
+      timeoutSeconds: 600,
+      needsDependencies: false,
+      demoArguments: '--help',
+      steps: [STRATEGY_TITLES[strategy]],
+      confidence: 0.45,
+      usedAi: false,
+      ...extra
+    })
+
+    if (evidence.runtime === 'node' && binEntry) {
+      return build('local-node', {
+        command: binEntry,
+        entry: binEntry,
+        needsDependencies: hasDependencies,
+        args: commandArgs([]),
+        rationale: `ابزار Node با entry «${binEntry}»؛ با Node داخلیٔ برنامه اجرا می‌شود${hasDependencies ? ' و وابستگی‌هایش نصب می‌شود' : ''}.`,
+        steps: [
+          'فایل‌های مخزن در پوشهٔ ابزارها کپی می‌شود.',
+          hasDependencies ? 'وابستگی‌ها با npm install --ignore-scripts نصب می‌شود.' : 'وابستگی اضافه‌ای لازم نیست.',
+          `اجرا با: node ${binEntry} <آرگومان‌ها>`,
+          usage ? `نحوهٔ استفاده از README: ${usage.slice(0, 200)}` : 'برای دیدن گزینه‌ها اول --help را اجرا کن.'
+        ]
+      })
+    }
+    if (evidence.runtime === 'node' && packageName) {
+      return build('npm-package', {
+        command: 'npx',
+        entry: packageName,
+        args: ['--yes', packageName, ...commandArgs([])],
+        permissions: { network: true, projectWrite: true, environment: [] },
+        rationale: `فایل قابل اجرا در مخزن نیست (احتمالاً در build تولید می‌شود)، اما بستهٔ منتشرشدهٔ «${packageName}» با npx اجرا می‌شود.`,
+        steps: [
+          'دستور با npx و گزینهٔ --yes اجرا می‌شود.',
+          'بسته در اولین اجرا از registry دانلود می‌شود؛ اینترنت لازم است.',
+          'خروجی در پوشهٔ پروژهٔ فعال نوشته می‌شود.'
+        ]
+      })
+    }
+    if (evidence.runtime === 'python' && rootPy) {
+      return build('local-python', {
+        command: rootPy,
+        entry: rootPy,
+        inputs: genericInputs(),
+        args: commandArgs([]),
+        rationale: `اسکریپت پایتون «${rootPy}» با مفسر سیستم اجرا می‌شود.`,
+        steps: [
+          'فایل‌های مخزن کپی می‌شود.',
+          'اگر requirements.txt دارد، اول آن را با pip نصب کن (این کار به دلیل امنیت، خودکار انجام نمی‌شود).',
+          `اجرا با: python ${rootPy} <آرگومان‌ها>`
+        ]
+      })
+    }
+    if (siteIndex) {
+      return build('static-project', {
+        command: '',
+        entry: siteIndex,
+        inputs: [],
+        outputs: [],
+        demoArguments: '',
+        rationale: 'این مخزن یک سایت/قالب استاتیک است؛ به‌جای ابزار، مستقیم به پروژهٔ قابل ویرایش تبدیلش می‌کنم.',
+        steps: [
+          'فایل‌های سایت به پوشهٔ پروژه‌ها کپی می‌شود.',
+          'پروژه در فهرست پروژه‌ها ثبت می‌شود.',
+          'در ویرایشگر بصری می‌توانی متن، تصویر، استایل و ساختار هر بخش را تغییر بدهی.'
+        ]
+      })
+    }
+    return build('manual', {
+      command: '',
+      entry: evidence.bin ?? null,
+      inputs: [],
+      demoArguments: '',
+      rationale: `راهبرد اتصال خودکاری برای این مخزن پیدا نشد (نوع: ${evidence.runtime}). بر اساس README عمل کن.`,
+      steps: [
+        'README مخزن را بخوان و ابزار را دستی نصب کن.',
+        'بعد از نصب، از صفحهٔ «ابزارها» یک manifest بساز و دستور اجرایی‌اش را وارد کن.',
+        'در manifest می‌توانی از {{projectPath}} و آرگومان‌های دلخواه استفاده کنی.'
+      ]
+    })
+  }
   private async downloadRepository(
     fullName: string,
     branch: string,
@@ -346,6 +722,96 @@ export class IntegrationService {
   }
 }
 
+function genericInputs(): PluginInput[] {
+  return [
+    {
+      key: 'arguments',
+      label: 'آرگومان‌های خط فرمان',
+      type: 'text',
+      required: false,
+      placeholder: '--help',
+      help: 'گزینه‌ها را همین‌جا بنویس؛ هر گزینه با فاصله جدا می‌شود.'
+    }
+  ]
+}
+
+function dedupeInputs(inputs: ConnectDesign['inputs']): ConnectDesign['inputs'] {
+  const seen = new Set<string>()
+  return inputs.filter((input) => {
+    if (seen.has(input.key) || input.key === 'arguments' || input.key === 'projectPath') return false
+    seen.add(input.key)
+    return true
+  })
+}
+
+function toPluginInputs(inputs: ConnectDesign['inputs']): PluginInput[] {
+  const list: PluginInput[] = inputs.map((input) => ({
+    key: input.key,
+    label: input.label,
+    type: input.type === 'select' ? 'select' : input.type,
+    required: input.required,
+    default: input.default,
+    options: input.options?.map((value) => ({ label: value, value })),
+    placeholder: input.placeholder,
+    help: input.help
+  }))
+  list.push({
+    key: 'arguments',
+    label: 'آرگومان‌های اضافه',
+    type: 'text',
+    required: false,
+    placeholder: '--verbose',
+    help: 'هر گزینهٔ دیگری که نیاز داری اینجا بنویس؛ در پایان دستور اضافه می‌شود.'
+  })
+  return list
+}
+
+function toPluginOutputs(outputs: ConnectDesign['outputs']): PluginOutput[] {
+  return outputs.map((output) => ({
+    key: output.key,
+    label: output.label || output.key,
+    type: output.type,
+    path: output.path.replace(/\\/g, '/').replace(/^\/+/, '')
+  }))
+}
+
+/**
+ * Builds the argv template. Booleans become conditional flags and optional
+ * `--key=value` pairs are dropped when empty, so a half-filled form still
+ * produces a command the tool accepts.
+ */
+function commandArgs(inputs: ConnectDesign['inputs']): string[] {
+  const args: string[] = []
+  for (const input of inputs) {
+    const flag = (input.flag ?? '').trim()
+    if (input.type === 'boolean') {
+      if (flag) args.push(`?{{${input.key}}}:${flag}`)
+      continue
+    }
+    if (!flag || input.argStyle === 'positional') {
+      args.push(`{{${input.key}}}`)
+      continue
+    }
+    if (input.argStyle === 'value') args.push(flag, `{{${input.key}}}`)
+    else args.push(`${flag}={{${input.key}}}`)
+  }
+  args.push('{{arguments}}')
+  return args
+}
+
+/** `pkg@2.1.0` -> `pkg@2.1.0`, `pkg` -> `pkg`; scopes keep their first segment. */
+function packageSpecifier(name: string): string {
+  const at = name.lastIndexOf('@')
+  if (at <= 0) return name
+  return name.slice(0, at)
+}
+
+function planDemoUsage(plan: ToolConnectPlan): string {  if (plan.strategy === 'manual') return ''
+  if (plan.strategy === 'static-project') return 'پروژهٔ استاتیک در ویرایشگر بصری'
+  const head = plan.strategy === 'npm-package' ? `npx ${plan.entry ?? ''}` : `${plan.strategy === 'local-python' ? 'python' : 'node'} ${plan.entry ?? ''}`
+  return `${head} ${plan.demoArguments}`.trim()
+}
+
 interface PackageJson {
   name?: string
   version?: string
@@ -380,45 +846,6 @@ export function detectRuntime(pkg: PackageJson | null, files: string[]): Integra
   return 'unknown'
 }
 
-export function buildManifest(
-  fullName: string,
-  repoName: string,
-  description: string,
-  version: string,
-  ai: ToolAiVerdict | null
-): PluginManifest {
-  const base = sanitizeSegment(`${repoName}`.toLowerCase(), 'tool').replace(/[^a-z0-9-_.]/g, '-')
-  return {
-    name: base.slice(0, 80),
-    displayName: repoName.slice(0, 100),
-    description: `${description}${ai?.capabilities?.length ? ` — ${ai.capabilities.join('، ')}` : ''}`.slice(0, 2000),
-    version: version || '1.0.0',
-    runtime: 'node',
-    command: 'node',
-    args: [],
-    cwd: '.',
-    inputs: [
-      {
-        key: 'arguments',
-        label: 'آرگومان‌های خط فرمان',
-        type: 'text',
-        required: false,
-        help: ai?.usage || `طبق README مخزن ${fullName} وارد کن؛ مثال: --help`,
-        placeholder: '--help'
-      }
-    ],
-    outputs: [],
-    permissions: {
-      network: ai?.permissions.network ?? true,
-      projectWrite: ai?.permissions.projectWrite ?? true,
-      environment: []
-    },
-    timeoutSeconds: 600,
-    builtin: undefined,
-    icon: 'terminal'
-  }
-}
-
 function listFiles(root: string, max = MAX_FILES): string[] {
   const files: string[] = []
   const walk = (dir: string): void => {
@@ -447,6 +874,8 @@ async function copyTree(source: string, target: string, depth: number): Promise<
   for (const entry of await fsp.readdir(source, { withFileTypes: true })) {
     if (['node_modules', '.git', 'dist', 'build', 'coverage'].includes(entry.name)) continue
     if (/^\.(npmrc|yarnrc)/i.test(entry.name)) continue
+    // Following a link would copy files that were never part of the inspected repo.
+    if (entry.isSymbolicLink()) continue
     const from = path.join(source, entry.name)
     const to = path.join(target, entry.name)
     if (entry.isDirectory()) {
@@ -473,27 +902,3 @@ function dedupe(findings: IntegrationFinding[]): IntegrationFinding[] {
 function hash(value: string): string {
   return createHash('sha256').update(value).digest('hex').slice(0, 16)
 }
-
-const BUILD_WRAPPER = `#!/usr/bin/env node
-const { spawnSync } = require('node:child_process');
-const fs = require('node:fs');
-const path = require('node:path');
-const pkgPath = path.join(__dirname, 'package.json');
-if (!fs.existsSync(pkgPath)) {
-  console.error('package.json پیدا نشد.');
-  process.exit(2);
-}
-const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-const bin = typeof pkg.bin === 'string' ? pkg.bin : Object.values(pkg.bin || {})[0];
-if (!bin) {
-  console.error('این بسته entry قابل اجرا (bin) ندارد.');
-  process.exit(2);
-}
-const args = process.argv.slice(2).filter((value) => value !== '');
-const result = spawnSync(process.execPath, [path.join(__dirname, bin), ...args], {
-  stdio: 'inherit',
-  cwd: process.env.WEBFORGE_PROJECT_PATH || process.cwd(),
-  env: process.env
-});
-process.exit(result.status === null ? 1 : result.status);
-`

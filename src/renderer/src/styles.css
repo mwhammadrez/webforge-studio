@@ -1137,6 +1137,18 @@ h4 {
   color: var(--muted);
   word-break: break-all;
 }
+.plan-steps {
+  margin: 0;
+  padding-inline-start: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.plan-steps li::marker {
+  color: var(--accent);
+}
 .color-row {
   display: flex;
   gap: 7px;

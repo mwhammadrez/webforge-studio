@@ -137,6 +137,7 @@ export function registerIpc(context: MainContext): void {
   })
 
   handle(IPC.appOpenPath, openPathSchema, async (input) => {
+    assertRevealablePath(input.path)
     const error = await shell.openPath(input.path)
     if (error) throw new AppError('OPEN_PATH_FAILED', error)
   })
@@ -298,9 +299,13 @@ export function registerIpc(context: MainContext): void {
   handle(IPC.integrationInspect, githubRepoSchema, (input) => context.integration.inspect(input.fullName))
 
   handle(
-    IPC.integrationInstall,
-    z.object({ fullName: z.string().regex(/^[\w.-]+\/[\w.-]+$/), force: z.boolean().default(false) }),
-    (input) => context.integration.install(input.fullName, input.force)
+    IPC.integrationConnect,
+    z.object({
+      fullName: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
+      force: z.boolean().default(false),
+      installDependencies: z.boolean().default(true)
+    }),
+    (input) => context.integration.connect(input.fullName, input)
   )
 
   handle(IPC.aiPlan, aiBriefSchema, (brief) => context.ai.plan(brief))
@@ -347,6 +352,15 @@ function saveDialog(
 ): Promise<Electron.SaveDialogReturnValue> {
   const window = context.getWindow()
   return window ? dialog.showSaveDialog(window, options) : dialog.showSaveDialog(options)
+}
+
+// shell.openPath runs files with these extensions, and downloaded repos can contain any of them.
+const REVEALABLE_BLOCK = /\.(exe|msi|com|scr|pif|cpl|bat|cmd|vbs|vbe|js|jse|wsf|wsh|ps1|ps1xml|lnk|jar|app|sh)$/i
+
+function assertRevealablePath(target: string): void {
+  if (REVEALABLE_BLOCK.test(target)) {
+    throw new AppError('OPEN_PATH_BLOCKED', 'فایل‌های اجرایی از این مسیر باز نمی‌شوند.')
+  }
 }
 
 export function applyTheme(theme: 'dark' | 'light' | 'system'): void {

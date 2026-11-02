@@ -31,7 +31,10 @@ describe('PreviewService', () => {
     expect(response.status).toBe(200)
     expect(html).toContain('/__webforge/editor.js')
     const editorScript = await fetch(`${state.url}/__webforge/editor.js`)
-    expect(await editorScript.text()).toContain('webforge:select')
+    const editorSource = await editorScript.text()
+    expect(editorSource).toContain('webforge:select')
+    // The client script ships as a raw template string, so a syntax error would only show up at click time.
+    expect(() => new Function(editorSource)).not.toThrow()
     const traversal = await fetch(`${state.url}/../../etc/passwd`)
     expect(traversal.status).toBe(404)
     const asset = await fetch(`${state.url}/assets/a.txt`)

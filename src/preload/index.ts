@@ -71,7 +71,12 @@ const api: WebForgeApi = {
   },
   integration: {
     inspect: (fullName) => invoke('integration:inspect', { fullName }),
-    install: (fullName, force) => invoke('integration:install', { fullName, force })
+    connect: (fullName, options) =>
+      invoke('integration:connect', {
+        fullName,
+        force: options?.force ?? false,
+        installDependencies: options?.installDependencies ?? true
+      })
   },
   ai: {
     plan: (brief) => invoke('ai:plan', brief),

@@ -83,7 +83,7 @@ async function bootstrap(): Promise<void> {
   const ai = new AiService(settings, projects, logger)
   const discovery = new DiscoveryService(logger)
   const qa = new QaService(preview, projects, logger)
-  const integration = new IntegrationService(discovery, ai, plugins, settings, logger, () => ({
+  const integration = new IntegrationService(discovery, ai, plugins, projects, settings, logger, () => ({
     tempDir: app.getPath('temp'),
     pluginsDir: settings.get().pluginDir
   }))

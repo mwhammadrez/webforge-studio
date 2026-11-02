@@ -18,6 +18,7 @@ interface RunningPreview {
   port: number
   url: string
   root: string
+  token: string
   startedAt: string
   watcher: FSWatcher
   clients: Set<http.ServerResponse>
@@ -62,6 +63,7 @@ export class PreviewService {
       port,
       url: `http://127.0.0.1:${port}`,
       root,
+      token: randomUUID().replace(/-/g, ''),
       startedAt: new Date().toISOString(),
       clients: new Set(),
       watcher: chokidar.watch(root, {
@@ -115,6 +117,7 @@ export class PreviewService {
       running: Boolean(preview),
       url: preview?.url ?? null,
       port: preview?.port ?? null,
+      token: preview?.token ?? null,
       pid: preview ? process.pid : null,
       startedAt: preview?.startedAt ?? null,
       error: null
@@ -159,20 +162,35 @@ export class PreviewService {
   ): Promise<void> {
     try {
       const url = new URL(request.url ?? '/', preview.url)
+      if (!this.isLocalHost(request, preview)) {
+        response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
+        response.end('Forbidden host')
+        return
+      }
+      if (request.method === 'OPTIONS') {
+        response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
+        response.end('Forbidden')
+        return
+      }
+      if ((request.method === 'POST' || request.method === 'PUT') && !this.isSameSite(request, preview)) {
+        response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
+        response.end('Cross-site request blocked')
+        return
+      }
       if (url.pathname === '/__webforge/editor.js') {
         response.writeHead(200, {
           'Content-Type': 'text/javascript; charset=utf-8',
-          'Cache-Control': 'no-store'
+          'Cache-Control': 'no-store',
+          'X-Content-Type-Options': 'nosniff'
         })
-        response.end(EDITOR_SCRIPT)
+        response.end(EDITOR_SCRIPT.replace('"__WEBFORGE_TOKEN__"', JSON.stringify(preview.token)))
         return
       }
       if (url.pathname === '/__webforge/events') {
         response.writeHead(200, {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-store',
-          Connection: 'keep-alive',
-          'Access-Control-Allow-Origin': '*'
+          Connection: 'keep-alive'
         })
         response.write('retry: 1500\n\n')
         preview.clients.add(response)
@@ -207,9 +225,20 @@ export class PreviewService {
     response: http.ServerResponse,
     url: URL
   ): Promise<void> {
-    let pathname = decodeURIComponent(url.pathname)
-    if (pathname.endsWith('/')) pathname += 'index.html'
-    const target = assertInside(preview.root, path.join(preview.root, pathname))
+    const pathname = this.safeDecode(url.pathname)
+    if (!pathname) {
+      response.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
+      response.end('Bad path')
+      return
+    }
+    let target: string
+    try {
+      target = assertInside(preview.root, path.join(preview.root, pathname))
+    } catch {
+      response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
+      response.end('Path outside preview root')
+      return
+    }
     let stat: fs.Stats
     try {
       stat = await fsp.stat(target)
@@ -233,7 +262,7 @@ export class PreviewService {
       response.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store',
-        'Access-Control-Allow-Origin': '*'
+        'X-Content-Type-Options': 'nosniff'
       })
       response.end(html)
       return
@@ -242,13 +271,45 @@ export class PreviewService {
       'Content-Type': type,
       'Content-Length': stat.size,
       'Cache-Control': 'no-store',
-      'Access-Control-Allow-Origin': '*'
+      'X-Content-Type-Options': 'nosniff'
     })
     if (request.method === 'HEAD') {
       response.end()
       return
     }
     fs.createReadStream(file).pipe(response)
+  }
+
+  private safeDecode(value: string): string | null {
+    try {
+      const decoded = decodeURIComponent(value)
+      if (decoded.includes('\0')) return null
+      return decoded
+    } catch {
+      return null
+    }
+  }
+
+  private isLocalHost(request: http.IncomingMessage, preview: RunningPreview): boolean {
+    const host = String(request.headers.host ?? '')
+    return host === `127.0.0.1:${preview.port}` || host === `localhost:${preview.port}`
+  }
+
+  /** Browsers always send one of these on cross-site writes; a page from another origin never passes. */
+  private isSameSite(request: http.IncomingMessage, preview: RunningPreview): boolean {
+    const secFetch = String(request.headers['sec-fetch-site'] ?? '')
+    if (secFetch) return secFetch === 'same-origin' || secFetch === 'none'
+    const origin = String(request.headers.origin ?? '')
+    if (origin) return origin === preview.url
+    const referer = String(request.headers.referer ?? '')
+    if (referer) {
+      try {
+        return new URL(referer).origin === preview.url
+      } catch {
+        return false
+      }
+    }
+    return true
   }
 
   private async readBody(request: http.IncomingMessage, limit: number): Promise<Buffer> {

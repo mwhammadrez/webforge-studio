@@ -17,7 +17,6 @@ import type {
   GithubRepoDetail,
   GithubRepoSummary,
   InstallDepsResult,
-  IntegrationInstallResult,
   IntegrationReport,
   IpcResult,
   Plugin,
@@ -30,7 +29,8 @@ import type {
   QaReport,
   ReplaceImageRequest,
   SaveEditRequest,
-  SettingsPatch
+  SettingsPatch,
+  ToolConnectResult
 } from './types'
 
 export const IPC = {
@@ -76,7 +76,7 @@ export const IPC = {
   pluginInstallDeps: 'plugins:installDeps',
   pluginsEvent: 'plugins:event',
   integrationInspect: 'integration:inspect',
-  integrationInstall: 'integration:install',
+  integrationConnect: 'integration:connect',
   aiPlan: 'ai:plan',
   aiGenerate: 'ai:generate',
   aiCancel: 'ai:cancel',
@@ -157,7 +157,10 @@ export interface WebForgeApi {
   }
   integration: {
     inspect(fullName: string): Promise<IpcResult<IntegrationReport>>
-    install(fullName: string, force: boolean): Promise<IpcResult<IntegrationInstallResult>>
+    connect(
+      fullName: string,
+      options?: { force?: boolean; installDependencies?: boolean }
+    ): Promise<IpcResult<ToolConnectResult>>
   }
   discover: {
     search(query: string, page: number, sort: 'stars' | 'updated' | 'best-match'): Promise<IpcResult<{ total: number; items: GithubRepoSummary[] }>>

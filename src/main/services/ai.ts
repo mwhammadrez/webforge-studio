@@ -29,6 +29,54 @@ const aiVerdictSchema = z.object({
   permissions: z.object({ network: z.boolean(), projectWrite: z.boolean() })
 })
 
+export const connectDesignSchema = z.object({
+  strategy: z.enum(['local-node', 'npm-package', 'local-python', 'static-project', 'manual']),
+  entry: z.string().max(300).nullable().default(null),
+  inputs: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]{0,40}$/),
+        label: z.string().min(1).max(200),
+        type: z.enum(['text', 'url', 'number', 'boolean', 'select', 'textarea', 'folder', 'file']),
+        required: z.boolean().default(false),
+        flag: z.string().max(60).optional(),
+        argStyle: z.enum(['flag', 'value', 'positional']).default('flag'),
+        options: z.array(z.string().max(80)).max(20).optional(),
+        placeholder: z.string().max(200).optional(),
+        help: z.string().max(500).optional(),
+        default: z.union([z.string(), z.number(), z.boolean()]).optional()
+      })
+    )
+    .max(10)
+    .default([]),
+  outputs: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]{0,40}$/),
+        label: z.string().max(200).default(''),
+        type: z.enum(['file', 'folder', 'json']).default('file'),
+        path: z.string().min(1).max(300)
+      })
+    )
+    .max(8)
+    .default([]),
+  permissions: z
+    .object({
+      network: z.boolean().default(false),
+      projectWrite: z.boolean().default(true),
+      environment: z.array(z.string().max(60)).max(10).default([])
+    })
+    .default({ network: false, projectWrite: true, environment: [] }),
+  timeoutSeconds: z.number().int().min(10).max(1800).default(600),
+  needsDependencies: z.boolean().default(false),
+  demoArguments: z.string().max(500).default(''),
+  rationale: z.string().max(1500).default(''),
+  steps: z.array(z.string().max(400)).max(8).default([]),
+  confidence: z.number().min(0).max(1).default(0.4)
+})
+
+export type ConnectDesign = z.infer<typeof connectDesignSchema>
+
 export const aiPlanSchema = z.object({
   brand: z.object({
     name: z.string().min(1).max(120),
@@ -208,6 +256,84 @@ Return JSON only.`
     const validated = aiVerdictSchema.safeParse(parsed)
     if (!validated.success) throw new AppError('AI_RESPONSE_INVALID', 'حکم هوش مصنوعی ساختار معتبری نداشت.')
     return { used: true, ...validated.data }
+  }
+
+  /**
+   * Reads the evidence WebForge collected about a repository and decides how the
+   * tool should be wired into the app. The model only names files and flags —
+   * the shell command itself is assembled by IntegrationService.
+   */
+  async designConnect(input: {
+    fullName: string
+    description: string
+    readme: string
+    packageJson: string
+    fileList: string[]
+    findings: string[]
+    detectedRuntime: string
+    detectedBin: string | null
+    scripts: string[]
+  }): Promise<ConnectDesign> {
+    const settings = this.settings.get()
+    const key = this.requireKey()
+    const messages = [
+      {
+        role: 'system',
+        content: `You are a senior integration engineer for "WebForge Studio", an Electron desktop app for building and editing websites.
+Your job: decide how a GitHub repository becomes a working part of WebForge, based on the evidence.
+
+Return ONLY JSON with this shape:
+{"strategy":"local-node|npm-package|local-python|static-project|manual","entry":"path/inside/repo.js OR npm-package-name OR null","inputs":[{"key":"out","label":"پوشهٔ خروجی","type":"folder|file|text|url|number|boolean|select|textarea","required":false,"flag":"--out","argStyle":"flag|value|positional","options":["a","b"],"placeholder":"","help":"توضیح فارسی کوتاه","default":""}],"outputs":[{"key":"result","label":"خروجی","type":"file|folder","path":"relative/path"}],"permissions":{"network":false,"projectWrite":true,"environment":["GITHUB_TOKEN"]},"timeoutSeconds":600,"needsDependencies":true,"demoArguments":"--help","rationale":"چرا این راه، فارسی","steps":["مرحلهٔ ۱…","مرحلهٔ ۲…"],"confidence":0.8}
+
+Strategy rules:
+- local-node: the repo ships runnable JS (package.json "bin" or a clear CLI entry) → WebForge copies the source and runs it with its own Node.
+- npm-package: the tool is meant to be run from the registry (no usable entry file in the source, but it is a published CLI) → entry MUST be the exact npm package name.
+- local-python: a Python script/module is the real tool → entry is the .py path inside the repo.
+- static-project: the repo is a website, template, or UI kit WebForge can edit directly (no CLI). entry = the html folder or "." 
+- manual: binaries, native builds, server-only projects, or anything you cannot wire up → entry null, steps explain what the user must do.
+
+Hard rules:
+- Never invent a file path. "entry" must appear in the file list exactly as written there.
+- "flag" must come from the README/package evidence. Omit it if unknown and use argStyle "positional".
+- Maximum 10 inputs. Order them the way the CLI expects them.
+- Use "select" whenever the README lists a fixed set of values.
+- steps: 3 to 7 short Persian sentences describing what WebForge will do and what the user must check.
+- Labels, help, rationale and steps MUST be Persian. keys are ASCII (a-z0-9_).
+- If evidence is thin, choose manual with low confidence instead of guessing.`
+      },
+      {
+        role: 'user',
+        content: `Repository: ${input.fullName}
+Description: ${input.description}
+Detected runtime: ${input.detectedRuntime}
+Detected bin: ${input.detectedBin ?? '(none)'}
+package.json scripts: ${input.scripts.join(', ') || '(none)'}
+Evidence findings:
+${input.findings.slice(0, 30).join('\n') || '(none)'}
+Files (first 400):
+${input.fileList.slice(0, 400).join('\n') || '(none)'}
+package.json:
+${input.packageJson.slice(0, 12000) || '(none)'}
+README excerpt:
+${input.readme.slice(0, 20000) || '(none)'}
+
+Return JSON only.`
+      }
+    ]
+    const response = await this.chat(settings.aiBaseUrl, key, settings.aiModel, messages, {
+      jsonMode: true,
+      maxTokens: 5000,
+      temperature: 0.2
+    })
+    const parsed = parseJson<unknown>(response.content)
+    const validated = connectDesignSchema.safeParse(parsed)
+    if (!validated.success) {
+      throw new AppError(
+        'AI_RESPONSE_INVALID',
+        `طرح اتصال هوش مصنوعی معتبر نبود: ${validated.error.issues.map((issue) => issue.path.join('.')).slice(0, 6).join(', ')}`
+      )
+    }
+    return validated.data
   }
 
   cancel(jobId: string): boolean {

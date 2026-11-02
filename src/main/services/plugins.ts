@@ -18,6 +18,7 @@ import type { Database } from '../core/db'
 import type { Logger } from '../core/logger'
 import type { ProjectService } from './projects'
 import { AppError } from '../core/errors'
+import { findNpmLauncher } from '../core/npm'
 import { assertInside, ensureDir } from '../core/fs-guard'
 
 interface PluginRow {
@@ -400,12 +401,15 @@ export class PluginService {
     }
     const packageJson = path.join(plugin.entry, 'package.json')
     if (!fs.existsSync(packageJson)) throw new AppError('DEPS_NO_PACKAGE', 'package.json در پوشهٔ ابزار پیدا نشد.')
-    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+    const launcher = findNpmLauncher('npm')
+    if (!launcher) {
+      throw new AppError('NPM_NOT_FOUND', 'npm روی این سیستم پیدا نشد؛ برای نصب وابستگی‌ها Node را نصب کن یا در PATH قرارش بده.')
+    }
     const logs: string[] = []
     const result = await new Promise<{ code: number | null }>((resolve) => {
-      const child = spawn(npm, ['install', '--ignore-scripts', '--no-audit', '--no-fund'], {
+      const child = spawn(process.execPath, [launcher, 'install', '--ignore-scripts', '--no-audit', '--no-fund'], {
         cwd: plugin.entry,
-        env: { PATH: process.env.PATH, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, TEMP: process.env.TEMP, TMP: process.env.TMP, SystemRoot: process.env.SystemRoot, npm_config_registry: 'https://registry.npmjs.org/', npm_config_ignore_scripts: 'true' },
+        env: { PATH: process.env.PATH, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, TEMP: process.env.TEMP, TMP: process.env.TMP, SystemRoot: process.env.SystemRoot, ELECTRON_RUN_AS_NODE: '1', npm_config_registry: 'https://registry.npmjs.org/', npm_config_ignore_scripts: 'true' },
         windowsHide: true
       })
       const timer = setTimeout(() => {
@@ -514,10 +518,21 @@ export class PluginService {
     }
     let command = plugin.manifest.command
     const expandArg = (template: string): string[] => {
+      const conditional = template.match(/^\?\{\{(\w+)\}\}:(.+)$/)
+      if (conditional) {
+        const value = inputs[conditional[1]]
+        return value === true || value === 'true' ? splitArguments(conditional[2]) : []
+      }
+      const paired = template.match(/^(-{1,2}[\w-]+)=\{\{(\w+)\}\}$/)
+      if (paired && (inputs[paired[2]] === undefined || inputs[paired[2]] === '')) return []
       const match = template.match(/^\{\{(\w+)\}\}$/)
       if (match) {
         const value = inputs[match[1]]
-        if (typeof value === 'string') return splitArguments(value)
+        if (value === undefined || value === '') return []
+        if (typeof value === 'boolean') return value ? [substitute(template)] : []
+        // Only the free-form field is tokenised; a path must survive as one argv entry.
+        if (typeof value === 'string' && match[1] === 'arguments') return splitArguments(value)
+        return [substitute(template)]
       }
       return [substitute(template)]
     }
@@ -525,15 +540,17 @@ export class PluginService {
     if (plugin.runtime === 'node') {
       command = process.execPath
       env.ELECTRON_RUN_AS_NODE = '1'
-      if (!plugin.manifest.args.some((arg) => arg.endsWith('.js') || arg.endsWith('.mjs') || arg.endsWith('.cjs'))) {
-        args = [path.join(plugin.entry, plugin.manifest.command), ...args]
-      }
+      args = [path.join(plugin.entry, plugin.manifest.command), ...args]
     } else if (plugin.runtime === 'python') {
       command = process.platform === 'win32' ? 'python' : 'python3'
-      if (!plugin.manifest.args.some((arg) => arg.endsWith('.py'))) {
-        args = [path.join(plugin.entry, plugin.manifest.command), ...args]
+      args = ['-u', path.join(plugin.entry, plugin.manifest.command), ...args]
+    } else if (plugin.runtime === 'executable') {
+      const launcher = plugin.manifest.command === 'npm' || plugin.manifest.command === 'npx' ? findNpmLauncher(plugin.manifest.command) : null
+      if (launcher) {
+        command = process.execPath
+        env.ELECTRON_RUN_AS_NODE = '1'
+        args = [launcher, ...args]
       }
-      args = ['-u', ...args]
     } else if (plugin.runtime === 'shell') {
       if (process.platform === 'win32') {
         command = 'cmd.exe'

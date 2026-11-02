@@ -86,6 +86,7 @@ export interface PreviewState {
   running: boolean
   url: string | null
   port: number | null
+  token: string | null
   pid: number | null
   startedAt: string | null
   error: string | null
@@ -127,9 +128,21 @@ export interface EditorTarget {
   text: string
   html: string
   attrs: Record<string, string | null>
+  classes: string[]
   styles: Record<string, string>
   imageSrc: string | null
   label: string
+  /** Number of non-blank direct text nodes inside the element. */
+  textCount?: number
+  /** Concatenated direct text nodes; the server edits exactly these. */
+  editableText?: string
+  hasElementChildren?: boolean
+  /** The element and its ancestors, nearest first, for quick re-targeting. */
+  levels?: Array<{ selector: string; tag: string; text: string; editableText?: string }>
+  /** Index of the clicked text node among the target's own child text nodes. */
+  textIndex?: number
+  /** Text the user actually clicked, used to re-anchor the selection after a reload. */
+  clickedText?: string
 }
 
 export interface EditorSelectionMessage {
@@ -139,11 +152,16 @@ export interface EditorSelectionMessage {
 }
 
 export type EditAction =
-  | { type: 'text'; text: string }
+  | { type: 'text'; text: string; textIndex?: number }
   | { type: 'attr'; name: string; value: string }
+  | { type: 'removeAttr'; name: string }
   | { type: 'style'; name: string; value: string }
   | { type: 'image'; src: string; alt?: string }
   | { type: 'link'; href: string; target?: string }
+  | { type: 'html'; html: string }
+  | { type: 'remove' }
+  | { type: 'insertBefore'; html: string }
+  | { type: 'insertAfter'; html: string }
 
 export interface SaveEditRequest {
   projectId: string
@@ -151,6 +169,7 @@ export interface SaveEditRequest {
   selector: string
   action: EditAction
   fallbackText?: string
+  textIndex?: number
 }
 
 export interface EditSummary {
@@ -397,11 +416,47 @@ export interface IntegrationReport {
   findings: IntegrationFinding[]
   proposedManifest: PluginManifest | null
   usage: string
+  connect: ToolConnectPlan
 }
 
-export interface IntegrationInstallResult {
-  plugin: Plugin
+/** How WebForge wires an external tool into the app. */
+export type ConnectStrategy =
+  | 'local-node'
+  | 'npm-package'
+  | 'local-python'
+  | 'static-project'
+  | 'manual'
+
+export interface ToolConnectPlan {
+  strategy: ConnectStrategy
+  /** False when WebForge can only document the steps instead of running them. */
+  actionable: boolean
+  title: string
+  /** Executable the plugin will spawn, already resolved for this OS. */
+  command: string
+  /** File inside the repository, or the npm package name for npm-package. */
+  entry: string | null
+  args: string[]
+  inputs: PluginInput[]
+  outputs: PluginOutput[]
+  permissions: PluginPermissions
+  timeoutSeconds: number
+  /** Needs `npm install --ignore-scripts` before the first run. */
+  needsDependencies: boolean
+  steps: string[]
+  demoArguments: string
+  rationale: string
+  confidence: number
+  usedAi: boolean
+}
+
+export interface ToolConnectResult {
+  strategy: ConnectStrategy
   report: IntegrationReport
+  plugin: Plugin | null
+  project: Project | null
+  installedTo: string | null
+  logs: string[]
 }
 
 export interface InstallDepsResult {

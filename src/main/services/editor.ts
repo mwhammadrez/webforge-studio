@@ -16,11 +16,44 @@ import type { ProjectService } from './projects'
 import { AppError } from '../core/errors'
 import { assertInside, atomicWrite, backupFile, ensureDir, sanitizeSegment, uniquePath } from '../core/fs-guard'
 
+interface AttributeLocation {
+  startOffset: number
+  endOffset: number
+}
+
+interface TagLocation {
+  startOffset: number
+  endOffset: number
+  attrs?: Record<string, AttributeLocation>
+}
 interface Location {
   startOffset: number
   endOffset: number
-  startTag?: { startOffset: number; endOffset: number; attrs?: Record<string, Location> }
-  endTag?: { startOffset: number; endOffset: number }
+  startTag?: TagLocation
+  endTag?: TagLocation
+}
+
+interface TextSpan {
+  start: number
+  end: number
+  text: string
+}
+
+interface SourceRange {
+  /** Whole element, including both tags. */
+  start: number
+  end: number
+  startTag: TagLocation
+  innerStart: number
+  innerEnd: number
+  hasEndTag: boolean
+  attributes: Record<string, AttributeLocation>
+}
+
+interface ResolveResult {
+  element: cheerio.Cheerio<Element>
+  range: SourceRange
+  textSpans: TextSpan[]
 }
 
 interface EditRow {
@@ -52,21 +85,16 @@ export class EditorService {
       const file = this.resolveHtml(project, request.file)
       const html = fs.readFileSync(file, 'utf8')
       const $ = cheerio.load(html, { sourceCodeLocationInfo: true })
-      const element = this.findElement($, request.selector, request.fallbackText)
-      if (!element) {
+      const resolved = this.resolveTarget($, html, request.selector, request.fallbackText)
+      if (!resolved) {
         throw new AppError(
           'ELEMENT_NOT_MAPPED',
-          'نتوانستم فایل منبع این بخش را تشخیص دهم. صفحه را تازه کن و دوباره انتخاب کن.'
+          'نتوانستم فایل منبع این بخش را تشخیص دهم. صفحه را تازه کن و یک بخش بزرگ‌تر را انتخاب کن.'
         )
       }
-      const node = element[0] as Element
-      const location = (node as unknown as { sourceCodeLocation?: Location }).sourceCodeLocation
-      if (!location || !location.startTag) {
-        throw new AppError('ELEMENT_NOT_MAPPED', 'این عنصر به‌صورت خودکار ساخته شده و فایل منبع ندارد.')
-      }
-      const before = this.readValue(node, request.action)
+      const before = this.readValue(resolved, request.action)
       const after = this.readValueAfter(request.action)
-      const patched = this.applyAction(html, location, request.action, element)
+      const patched = this.applyAction(html, resolved, request.action)
       if (patched === html) {
         throw new AppError('NO_CHANGE', 'تغییری برای ذخیره وجود ندارد.')
       }
@@ -192,6 +220,121 @@ export class EditorService {
     return full
   }
 
+  private resolveTarget(
+    $: cheerio.CheerioAPI,
+    html: string,
+    selector: string,
+    fallbackText?: string
+  ): ResolveResult | null {
+    const element = this.findElement($, selector, fallbackText)
+    if (!element || element.length === 0) return null
+    return this.locate($, html, element[0] as Element)
+  }
+
+  /** Map a live DOM node to byte ranges of the source file, with fallbacks for rewritten markup. */
+  private locate($: cheerio.CheerioAPI, html: string, node: Element): ResolveResult | null {
+    const wrap = (target: Element): cheerio.Cheerio<Element> => $(target) as unknown as cheerio.Cheerio<Element>
+    const direct = this.rangeOf(node)
+    if (direct) return { element: wrap(node), range: direct, textSpans: this.textSpansOf(node, direct) }
+    const outer = $.html(node)
+    const anchor = normalizeText(
+      node.children
+        .map((child) => ('data' in child && typeof child.data === 'string' ? child.data : ''))
+        .join(' ')
+    )
+    let parent = node.parent as Element | null
+    while (parent) {
+      const parentRange = this.rangeOf(parent)
+      if (parentRange) {
+        const area = html.slice(parentRange.innerStart, parentRange.innerEnd)
+        if (outer.trim()) {
+          const exact = area.indexOf(outer)
+          if (exact >= 0) {
+            const shifted = this.shiftRange(parentRange.innerStart + exact, outer)
+            if (shifted) return { element: wrap(node), range: shifted.range, textSpans: shifted.textSpans }
+          }
+        }
+        if (anchor.length > 2) {
+          const index = area.indexOf(anchor)
+          if (index >= 0) {
+            return {
+              element: wrap(node),
+              range: parentRange,
+              textSpans: [
+                {
+                  start: parentRange.innerStart + index,
+                  end: parentRange.innerStart + index + anchor.length,
+                  text: anchor
+                }
+              ]
+            }
+          }
+        }
+        return null
+      }
+      parent = parent.parent as Element | null
+    }
+    return null
+  }
+
+  private shiftRange(offset: number, outer: string): { range: SourceRange; textSpans: TextSpan[] } | null {
+    const reparsed = cheerio.load(outer, { sourceCodeLocationInfo: true })
+    const first = reparsed('body').children().first()
+    const root = first.length > 0 ? (first[0] as Element) : null
+    if (!root) return null
+    const inner = this.rangeOf(root)
+    if (!inner) return null
+    const range: SourceRange = {
+      start: inner.start + offset,
+      end: inner.end + offset,
+      startTag: {
+        ...inner.startTag,
+        startOffset: inner.startTag.startOffset + offset,
+        endOffset: inner.startTag.endOffset + offset,
+        attrs: undefined
+      },
+      innerStart: inner.innerStart + offset,
+      innerEnd: inner.innerEnd + offset,
+      hasEndTag: inner.hasEndTag,
+      attributes: Object.fromEntries(
+        Object.entries(inner.attributes).map(([key, value]) => [
+          key,
+          { startOffset: value.startOffset + offset, endOffset: value.endOffset + offset }
+        ])
+      )
+    }
+    return { range, textSpans: this.textSpansOf(root, range) }
+  }
+
+  private rangeOf(node: Element): SourceRange | null {
+    const location = (node as unknown as { sourceCodeLocation?: Location }).sourceCodeLocation
+    if (!location?.startTag) return null
+    const startTag = location.startTag
+    return {
+      start: location.startOffset,
+      end: location.endOffset,
+      startTag,
+      innerStart: startTag.endOffset,
+      innerEnd: location.endTag ? location.endTag.startOffset : location.endOffset,
+      hasEndTag: Boolean(location.endTag),
+      attributes: startTag.attrs ?? {}
+    }
+  }
+
+  private textSpansOf(node: Element, range: SourceRange): TextSpan[] {
+    const spans: TextSpan[] = []
+    for (const child of node.children) {
+      if (!('data' in child) || typeof child.data !== 'string') continue
+      const text = child.data
+      if (text.trim().length === 0) continue
+      const location = (child as unknown as { sourceCodeLocation?: { startOffset: number; endOffset: number } }).sourceCodeLocation
+      if (!location) continue
+      if (location.startOffset < range.innerStart || location.endOffset > range.innerEnd) continue
+      spans.push({ start: location.startOffset, end: location.endOffset, text })
+    }
+    return spans
+  }
+
   private findElement(
     $: cheerio.CheerioAPI,
     selector: string,
@@ -222,63 +365,81 @@ export class EditorService {
     return null
   }
 
-  private applyAction(
-    html: string,
-    location: Location,
-    action: EditAction,
-    element: cheerio.Cheerio<Element>
-  ): string {
-    const startTag = location.startTag
-    if (!startTag) throw new AppError('ELEMENT_NOT_MAPPED', 'این عنصر تگ شروع قابل‌ویرایش ندارد.')
+  private applyAction(html: string, resolved: ResolveResult, action: EditAction): string {
+    const { range } = resolved
+    const element = resolved.element
+    if (action.type === 'remove') {
+      return `${html.slice(0, range.start)}${html.slice(range.end)}`
+    }
+    if (action.type === 'insertBefore') {
+      return `${html.slice(0, range.start)}${action.html}${html.slice(range.start)}`
+    }
+    if (action.type === 'insertAfter') {
+      return `${html.slice(0, range.end)}${action.html}${html.slice(range.end)}`
+    }
     if (action.type === 'text') {
-      if (!location.endTag) throw new AppError('ELEMENT_NOT_MAPPED', 'این عنصر محتوای متنی قابل‌ویرایش ندارد.')
-      const innerStart = startTag.endOffset
-      const innerEnd = location.endTag.startOffset
-      return `${html.slice(0, innerStart)}${escapeText(action.text)}${html.slice(innerEnd)}`
+      const span = this.pickTextSpan(resolved, action.textIndex)
+      if (span) {
+        return `${html.slice(0, span.start)}${escapeText(action.text)}${html.slice(span.end)}`
+      }
+      if (!range.hasEndTag) throw new AppError('ELEMENT_NOT_MAPPED', 'این عنصر محتوای متنی قابل‌ویرایش ندارد.')
+      return `${html.slice(0, range.innerStart)}${escapeText(action.text)}${html.slice(range.innerEnd)}`
+    }
+    if (action.type === 'html') {
+      if (!range.hasEndTag) throw new AppError('ELEMENT_NOT_MAPPED', 'این عنصر محتوای داخلی قابل‌ویرایش ندارد.')
+      return `${html.slice(0, range.innerStart)}${action.html}${html.slice(range.innerEnd)}`
+    }
+    if (action.type === 'removeAttr') {
+      const existing = range.attributes[action.name.toLowerCase()] ?? range.attributes[action.name]
+      if (!existing) return html
+      const start = dropAttributeGap(html, existing.startOffset)
+      return `${html.slice(0, start)}${html.slice(existing.endOffset)}`
     }
     if (action.type === 'attr') {
-      return this.setAttribute(html, startTag, action.name, action.value)
+      return this.setAttribute(html, range, action.name, action.value)
     }
     if (action.type === 'style') {
       const current = element.attr('style') ?? ''
       const property = toKebab(action.name)
       const declarations = parseStyle(current)
-      declarations.set(property, action.value)
+      if (action.value.trim() === '') declarations.delete(property)
+      else declarations.set(property, action.value)
       const next = [...declarations.entries()].map(([key, value]) => `${key}: ${value}`).join('; ')
-      return this.setAttribute(html, startTag, 'style', next)
+      return this.setAttribute(html, range, 'style', next)
     }
     if (action.type === 'image') {
       const attrs: Record<string, string> = { src: action.src }
       if (action.alt !== undefined) attrs.alt = action.alt
-      return this.setAttributes(html, startTag, attrs)
+      return this.setAttributes(html, range, attrs)
     }
     if (action.type === 'link') {
       const attrs: Record<string, string> = { href: action.href }
       if (action.target !== undefined) attrs.target = action.target
-      return this.setAttributes(html, startTag, attrs)
+      return this.setAttributes(html, range, attrs)
     }
     return html
   }
 
-  private setAttribute(
-    html: string,
-    startTag: NonNullable<Location['startTag']>,
-    name: string,
-    value: string
-  ): string {
-    return this.setAttributes(html, startTag, { [name]: value })
+  private pickTextSpan(resolved: ResolveResult, textIndex?: number): TextSpan | null {
+    const spans = resolved.textSpans
+    if (spans.length === 0) return null
+    if (textIndex !== undefined && spans[textIndex]) return spans[textIndex]
+    if (spans.length === 1) return spans[0]
+    const largest = spans.reduce((best, span) => (span.text.length > best.text.length ? span : best), spans[0])
+    return largest
   }
 
-  private setAttributes(
-    html: string,
-    startTag: NonNullable<Location['startTag']>,
-    values: Record<string, string>
-  ): string {
-    const attrs = startTag.attrs ?? {}
+  private setAttribute(html: string, range: SourceRange, name: string, value: string): string {
+    return this.setAttributes(html, range, { [name]: value })
+  }
+
+  private setAttributes(html: string, range: SourceRange, values: Record<string, string>): string {
+    const attrs = range.attributes
     const patches: Array<{ start: number; end: number; text: string }> = []
     const additions: string[] = []
     for (const [name, value] of Object.entries(values)) {
-      const existing = attrs[name]
+      const key = name.toLowerCase()
+      const existing = attrs[key] ?? attrs[name]
       if (existing) {
         const raw = html.slice(existing.startOffset, existing.endOffset)
         const eq = raw.indexOf('=')
@@ -297,7 +458,7 @@ export class EditorService {
       }
     }
     if (additions.length > 0) {
-      let insertAt = startTag.endOffset - 1
+      let insertAt = range.startTag.endOffset - 1
       if (html[insertAt - 1] === '/') insertAt -= 1
       patches.push({ start: insertAt, end: insertAt, text: ` ${additions.join(' ')}` })
     }
@@ -308,15 +469,18 @@ export class EditorService {
     return output
   }
 
-  private readValue(node: Element, action: EditAction): string {
-    const attribs = node.attribs ?? {}
+  private readValue(resolved: ResolveResult, action: EditAction): string {
+    const node = resolved.element[0] as unknown as Element
+    const attribs = (node as { attribs?: Record<string, string> }).attribs ?? {}
     switch (action.type) {
-      case 'text':
-        return node.children
-          .map((child) => ('data' in child && typeof child.data === 'string' ? child.data : ''))
-          .join('')
-          .trim()
+      case 'text': {
+        const span = this.pickTextSpan(resolved, action.textIndex)
+        if (span) return span.text
+        return resolved.textSpans.map((item) => item.text).join(' ').trim()
+      }
       case 'attr':
+        return attribs[action.name] ?? ''
+      case 'removeAttr':
         return attribs[action.name] ?? ''
       case 'style':
         return attribs.style ?? ''
@@ -324,6 +488,8 @@ export class EditorService {
         return attribs.src ?? ''
       case 'link':
         return attribs.href ?? ''
+      case 'html':
+        return resolved.element.html() ?? ''
       default:
         return ''
     }
@@ -335,12 +501,18 @@ export class EditorService {
         return action.text
       case 'attr':
         return action.value
+      case 'removeAttr':
+        return ''
       case 'style':
         return action.value
       case 'image':
         return action.src
       case 'link':
         return action.href
+      case 'html':
+      case 'insertBefore':
+      case 'insertAfter':
+        return action.html
       default:
         return ''
     }
@@ -367,6 +539,17 @@ function escapeText(value: string): string {
 
 function escapeAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Attribute offsets exclude the gap before them, so splice it out too: leaving `<a href="/x" >`.
+function dropAttributeGap(html: string, offset: number): number {
+  let start = offset
+  while (start > 0 && (html[start - 1] === ' ' || html[start - 1] === '\t')) start--
+  if (start > 0 && html[start - 1] === '\n') {
+    start--
+    if (start > 0 && html[start - 1] === '\r') start--
+  }
+  return start
 }
 
 function toKebab(value: string): string {

@@ -48,15 +48,20 @@ export const settingsPatchSchema = z
   )
 
 export const editActionSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('text'), text: z.string().max(100000) }),
+  z.object({ type: z.literal('text'), text: z.string().max(100000), textIndex: z.number().int().min(0).max(500).optional() }),
   z.object({ type: z.literal('attr'), name: z.string().min(1).max(100), value: z.string().max(100000) }),
+  z.object({ type: z.literal('removeAttr'), name: z.string().min(1).max(100) }),
   z.object({ type: z.literal('style'), name: z.string().min(1).max(100), value: z.string().max(2000) }),
   z.object({ type: z.literal('image'), src: z.string().min(1).max(2048), alt: z.string().max(500).optional() }),
   z.object({
     type: z.literal('link'),
     href: z.string().max(2048),
     target: z.string().max(50).optional()
-  })
+  }),
+  z.object({ type: z.literal('html'), html: z.string().max(200000) }),
+  z.object({ type: z.literal('remove') }),
+  z.object({ type: z.literal('insertBefore'), html: z.string().max(200000) }),
+  z.object({ type: z.literal('insertAfter'), html: z.string().max(200000) })
 ])
 
 export const saveEditSchema = z.object({
@@ -64,7 +69,8 @@ export const saveEditSchema = z.object({
   file: z.string().min(1).max(1024),
   selector: z.string().min(1).max(4000),
   action: editActionSchema,
-  fallbackText: z.string().max(2000).optional()
+  fallbackText: z.string().max(2000).optional(),
+  textIndex: z.number().int().min(0).max(500).optional()
 })
 
 export const replaceImageSchema = z.object({
