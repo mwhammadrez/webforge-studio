@@ -1,0 +1,1284 @@
+ام، ببین، اینترنت که دارم، اوکیه. خب، یعنی، به ایجنت که قراره این پرامپت بدم، همه ابزارها رو داره. یعنی عملاً داخل خودش یه کامپیوتر داره، هر کاری بخوای می‌تونه بکنه. کافیه بهش بگی با چه کیفیتی، چه زبانی، چه مثلاً چه‌جوری، بهترینش. یعنی همون که عملاً از همه قوی‌تره می‌خوام برام بگی درست کنه. خب؟ بعد، ام، من ابزارهایی که دارم، حالا نمی‌دونم چه‌جوری بهت بگم، یه سری اسکریپت و اون چیزها، این چیزها. خب، من خودم می‌دم به اون. خب؟ تو فقط بگو که آقا، این ابزارهایی که بهت می‌ده رو، خب، اونا رو وارد سایت، وارد اون— ببخشید، نرم‌افزار کن، که کاربر مثلاً با زدن رو گزینه فلان، این کارو بکنه. بعد مثلاً با جزئیات باشه، مثلاً توی وقتی استخراج کرد، توی فلان فولدر ذخیره بشه. یعنی خودش بسنجه وقتی مثلاً فلان کارو بخواد بکنه، به چه چیزهایی گزینه‌های دیگه نیاز داره. یعنی چیزی کم نداره، خودش بسنجه همه‌چی رو، با دقت انجام بده. خب؟ بعد، ام، من هر ابزاری بهش بدم، خودش توی اون نرم‌افزار ارضا کنه، و هر چیزی، هر باکس، هر چیزی که نیاز داره، خودش دیگه دربیاره، خودش بره بسنجه، تحقیق کنه. و همین. بعد، ام، برای ویرایش و اینا، خودم بهش می‌دم، خودش می‌فهمه. تو فقط می‌خواد یه پرامپت برام بنویسی که خودش خیلی حساب‌شده جلو بره. و بعد، برنامه باید— اگه بتونه آفلاین کار کنه خوبه، ولی فکر می‌کنم به اینترنت نیاز داره. طبیعتاً همون اینترنت. بعد اینکه یه نرم‌افزار که بازش می‌کنی، آقا، مثلاً بگه چه ابزاری می‌خوای استفاده کنی. مثلاً بزنه اولیچ، ابزار فلانی، مثلاً یکیش استخراج سایته. بزنه می‌گه لینک سایت وارد کن. من می‌زنم، شروع کنه به استخراج کردن. اگه جاهاییش نیاز به ای‌پی‌آی مثلاً یه سری کارهاش نیاز به هوش مصنوعی بود، یه قسمت وارد کنه، یه قسمت بسازه که ای‌پی‌آی بگیره، مثلاً ای‌پی‌آی دیپسیک. خب، بگیره. بعد با استفاده از اون ای‌پی‌آی یه سری کارها رو خودش انجام بده. عملاً می‌خوام یه ابزار خیلی حرفه‌ای برام درست کنه. خب؟ من فقط تنها ابزارهایی که دارم همینه. ابزارهای اولین ابزار، استخراج سایت. یعنی لینک سایت بهش می‌دم، استخراج می‌کنه. ابزار دوم که دارم اینه که مثلاً یه فولدر سایتی بهش می‌دم. خب؟ با استفاده از اون ابزار، یعنی دیگه مثلاً اختیار داره کل— روی کل سایت. مثلاً سایته برات باز می‌کنه، هر جا کلیک کنی، می‌گه آقا می‌خوای از چی عوض کنی، فلانی. یعنی اینا ابزارش دارم از قبل، فقط می‌خوام این‌طوری باشه. بعد ابزار دیگه هم که دارم، مثلاً برای ساخت سایت‌های خیلی حرفه‌ای، این ابزاری که دارم، یه نوع اسکیل خیلی حرفه‌ایه که مثلاً کافیه به هوش مصنوعی بدی، با استفاده از این ابزارها برات سایتی که برات اون پرامپتی که بهش می‌دی، برات اون سایته رو می‌سازه. از اول اول. و همین. هر ابزار خیلی حرفه‌ای که می‌بینم، خیلی توی گیت‌هاب بره بگرده. خب؟ عمیقاً بره بگرده. که ببینه یه سری ابزارها برای طراحی سایت که خیلی کاربردی‌ان، مثل این چیزها گفتم، عملاً یه نوع ابزار کامل باشن. توی گزینه اضاف بشه توی نرم‌افزار، که بتونم ازش استفاده کنم. کاملاً نرم‌افزار فارسی باشه، فونت قشنگ باشه، ام، دارک تور باشه، نرم‌افزار دارک مایل به خاکستری. یعنی دارک یه کم روشن باشه. پس‌زمینه سفید هم داشته باشه که خودم بتونم عوض کنم. بعد هر تنظیماتی نیازه اضاف کنه، هیچی کم نداره. بعد همه خودش تست بگیره، امتحان کنه با گیدار فیکس کنه. همین‌طور سر خود کار نکنه. و همین.
+
+## ۱. ASSUMPTIONS AND DECISIONS
+
+1. هدف: ساخت یک نرم‌افزار دسکتاپ ویندوزی خصوصی به نام **WebForge Studio** برای استخراج سایت، بازکردن و ویرایش بصری پروژه‌های سایت، اجرای ابزارهای شخصی، و ساخت سایت از پرامپت با کمک AI. [confirm?]
+2. کاربر فقط خودت هستی؛ نیازی به ثبت‌نام، Multi-tenancy یا احراز هویت چندکاربره نیست. [confirm?]
+3. زبان رابط کاربری: فارسی، RTL، با فونت فارسی باکیفیت و تم دارک خاکستری-روشن به‌علاوه‌ی تم روشن قابل‌تغییر. [confirm?]
+4. Stack پیشنهادی: **Electron + TypeScript + React + Node.js**؛ چون به WebView داخلی، فایل‌سیستم، اجرای اسکریپت و Browser Automation نیاز داری. [confirm?]
+5. پایگاه داده: **SQLite** برای پروژه‌ها، تنظیمات، تاریخچه‌ی اجرای ابزارها و لاگ‌ها. [confirm?]
+6. ابزارهای موجود تو به‌صورت **Plugin** اضافه می‌شوند؛ برنامه یک Plugin Runtime با فرمت مشخص می‌سازد و هر ابزار یک فایل مانیفست، ورودی‌ها، خروجی، آیکون و دستور اجرا دارد. [confirm?]
+7. سه Plugin اولیه: «استخراج سایت»، «ویرایشگر بصری سایت» و «ساخت سایت با AI». [confirm?]
+8. سرویس AI پیش‌فرض: **DeepSeek API**؛ کلید API فقط در `.env` یا Settings رمزنگاری‌شده نگهداری می‌شود و هرگز در کد یا لاگ قرار نمی‌گیرد. [confirm?]
+9. برنامه به اینترنت برای استخراج سایت، نصب وابستگی‌ها و سرویس AI نیاز دارد؛ ویرایش پروژه‌ی محلی و اجرای ابزارهای آفلاین باید بدون اینترنت کار کند. [confirm?]
+10. Agent هدف: **Claude Code با دسترسی کامل Shell، شبکه، فایل‌سیستم و امکان اجرای تست**. [confirm?]
+11. Agent قبل از افزودن هر ابزار GitHub، مخزن را بررسی می‌کند: مجوز، فعالیت اخیر، ستاره/اعتبار نسبی، وابستگی‌ها، ریسک امنیتی و قابلیت اجرای محلی؛ سپس نتیجه را در `DECISIONS.md` ثبت می‌کند. [confirm?]
+12. نسخه‌ی اول شامل استخراج سایت، بازکردن پروژه، پیش‌نمایش زنده، ویرایش بصری پایه، اجرای Plugin، ساخت سایت با AI، تنظیمات و تست خودکار است. [confirm?]
+
+## ۲. MASTER PROMPT
+
+````markdown
+# WebForge Studio — Execution Prompt
+
+<mission>
+Build a private Windows desktop application named **WebForge Studio** for a professional web designer.
+
+The user wants one local workspace where they can:
+1. Enter a website URL and extract its source into a local editable project.
+2. Open a local website folder, run it in an embedded preview, and visually edit elements by clicking them.
+3. Add and run their own professional tools as plugins.
+4. Generate complete professional websites from a Persian or English prompt using AI.
+5. Discover, evaluate, and optionally integrate useful open-source web-design tools from GitHub.
+
+Target user: a single professional web designer who works locally on Windows.
+Core value: replace a scattered collection of scripts and browser tools with one fast, reliable, Persian-language desktop studio.
+
+Definition of success:
+- S-1: The user can launch the installed or development application on Windows and see a Persian RTL dashboard.
+- S-2: The user can enter a public website URL, start extraction, watch progress, and receive a local project folder containing the downloaded site assets.
+- S-3: The user can open any local website folder, start a local preview server, and see the site in the embedded browser.
+- S-4: The user can click an image, text, link, or styled element in the preview and edit it through a Persian side panel.
+- S-5: The user can register an external tool as a plugin, provide its required inputs, run it, and see its logs, output files, and errors.
+- S-6: The user can enter a website brief, choose preferences, and generate a complete static website project using the configured DeepSeek API key.
+- S-7: The user can switch between dark and light themes, change the interface language direction correctly, and use all main screens without layout breakage.
+- S-8: Every milestone is proven by commands whose real output is shown; no feature is reported complete without evidence.
+
+Working relationship:
+You are a senior full-stack desktop engineer. Build the complete application incrementally. Report blockers immediately. Ask only when ambiguity affects correctness, security, or data loss. Make decisions already covered by this prompt without asking. Prove every claim with real command output.
+
+Source of truth:
+This prompt is the primary source of truth. `SPEC.md` is the normalized project specification. If this prompt and `SPEC.md` conflict, stop and ask the user instead of choosing silently.
+</mission>
+
+<context_and_environment>
+Target platform:
+- Windows 10 or Windows 11, x64.
+- Development and runtime must work on the user's Windows machine.
+- Use Electron for the desktop shell because it provides Chromium, Node.js integration, local file access, and embedded web preview in one proven runtime. [verify in Phase 0]
+- Use TypeScript in strict mode for all application code. [verify in Phase 0]
+- Use Node.js LTS current version. [verify in Phase 0]
+- Use npm as the package manager. Commit `package-lock.json`. [verify in Phase 0]
+
+Directory layout:
+```text
+webforge-studio/
+├── src/
+│   ├── main/               # Electron main process: windows, IPC, filesystem, processes
+│   ├── preload/            # Secure context bridge between renderer and main
+│   ├── renderer/           # React UI
+│   ├── core/               # Domain services: projects, extraction, preview, plugins, AI
+│   ├── plugins/            # Built-in plugin definitions and runtime adapters
+│   └── shared/             # Shared TypeScript types, validation schemas, constants
+├── resources/
+│   ├── icons/
+│   └── fonts/
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── scripts/
+│   ├── check-no-placeholders.mjs
+│   └── verify-all.mjs
+├── docs/
+├── .env.example
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+Environment variables:
+| NAME | Purpose | Required | Expected format | Provided by | Read in |
+|---|---|---|---|---|---|
+| `DEEPSEEK_API_KEY` | AI generation and AI-assisted tool features | Optional until AI features are used | Non-empty secret string supplied by the user | User | Main process only |
+| `DEEPSEEK_BASE_URL` | Override DeepSeek API endpoint if needed | Optional | Valid HTTPS URL | User | Main process only |
+| `WEBFORGE_DATA_DIR` | Override default local data directory | Optional | Absolute Windows path | User | Main process only |
+| `WEBFORGE_PORT_RANGE_START` | Lowest port for local preview servers | Optional | Integer between 1024 and 65535 | User | Main process only |
+| `WEBFORGE_PORT_RANGE_END` | Highest port for local preview servers | Optional | Integer between 1024 and 65535 | User | Main process only |
+
+Rules:
+- Never commit `.env`.
+- Maintain `.env.example` with variable names and empty placeholder values only.
+- Read secrets only in the Electron main process.
+- Never expose secrets to the renderer, logs, error messages, crash reports, or IPC payloads.
+- Store user settings in SQLite; store the DeepSeek key encrypted at rest using an OS-backed credential mechanism or a local encryption key stored outside the project repository. [verify in Phase 0]
+
+External services:
+- Public websites, for extraction, require internet access.
+- DeepSeek API requires internet access and a user-provided key.
+- GitHub is used only for tool discovery and documentation lookup.
+- No paid service may be called without explicit user approval in the UI.
+
+Commands — verify each in Phase 0:
+- Install: `npm install`
+- Development: `npm run dev`
+- Production build: `npm run build`
+- Windows package: `npm run package:win`
+- Unit tests: `npm run test:unit`
+- Integration tests: `npm run test:integration`
+- End-to-end tests: `npm run test:e2e`
+- Lint: `npm run lint`
+- Format check: `npm run format:check`
+- Typecheck: `npm run typecheck`
+- Placeholder gate: `npm run check:placeholders`
+- Full verification: `npm run verify`
+- Health check: launch the app and verify the dashboard loads, then run `npm run test:e2e`
+
+Dependency rules:
+- Before adding any dependency, verify that it exists in the official npm registry using `npm view <package> name version license repository`.
+- Confirm the exact package name to avoid look-alike or hallucinated packages.
+- Record the chosen version, license, maintenance status, and known vulnerability status in `DECISIONS.md`.
+- Prefer official, actively maintained packages.
+- Do not add a dependency for functionality available in Node.js, Electron, or the standard library.
+- Pin versions through `package-lock.json`; never hand-edit the lockfile.
+
+Git:
+- Default branch: `main`.
+- Create one branch per milestone: `feat/m0-walking-skeleton`, `feat/m1-project-core`, and so on.
+- Use Conventional Commits.
+- Commit only after all gates pass.
+- Never commit `.env`, build output, user projects, extracted sites, logs, or secrets.
+</context_and_environment>
+
+<architecture_and_stack>
+Architecture:
+
+```text
+┌──────────────────────────────────────────────┐
+│ Electron Renderer: React Persian RTL UI      │
+│ Dashboard / Projects / Extract / Preview     │
+│ Visual Editor / Plugins / AI Builder / Settings │
+└───────────────▲──────────────────────────────┘
+                │ Typed IPC through contextBridge
+┌───────────────┴──────────────────────────────┐
+│ Electron Main Process                         │
+│ Window manager, secure IPC, filesystem,      │
+│ process runner, SQLite, settings, secrets    │
+└───────▲───────────────▲───────────────▲──────┘
+        │               │               │
+┌───────┴──────┐ ┌──────┴───────┐ ┌─────┴──────┐
+│ Extraction   │ │ Preview      │ │ Plugin     │
+│ Service      │ │ Service      │ │ Runtime    │
+└───────┬──────┘ └──────┬───────┘ └─────┬──────┘
+        │               │               │
+   Local project   Embedded web     User scripts,
+   folder          view / local     CLIs, EXEs,
+                   server           Node/Python tools
+```
+
+Dependency direction:
+- `renderer` may communicate only with `preload`.
+- `preload` may communicate only with allowlisted `main` IPC handlers.
+- `main` uses `core` services.
+- `core` services may use `shared`, SQLite, filesystem, and plugin runtime.
+- `renderer` must never access Node.js APIs, filesystem, child processes, secrets, or arbitrary URLs directly.
+
+Technology table:
+| Layer | Choice | Version | Reason | Alternative rejected |
+|---|---|---|---|---|
+| Desktop shell | Electron | [verify in Phase 0] | Chromium-based preview, mature file/process APIs, strong Windows support | Tauri, because Rust and OS WebView differences add risk for browser automation and local tool execution |
+| UI | React + TypeScript | [verify in Phase 0] | Mature component ecosystem and strong typing | Plain HTML/JS, because it lacks maintainable typed structure |
+| State | Zustand or React Query | [verify in Phase 0] | Simple typed local state and async server-state handling | Redux, because it adds boilerplate without a clear benefit here |
+| Styling | Tailwind CSS | [verify in Phase 0] | Fast consistent theming and RTL support through logical properties | Custom CSS only, because theme consistency becomes harder |
+| Database | SQLite | [verify in Phase 0] | Local, zero-server, reliable persistence | PostgreSQL, because this is a single-user desktop app |
+| Validation | Zod | [verify in Phase 0] | Shared runtime and TypeScript validation at IPC and plugin boundaries | Manual validation, because it is error-prone |
+| Testing | Vitest + Playwright | [verify in Phase 0] | Fast unit tests and real Electron end-to-end verification | Jest only, because Electron E2E needs a browser-level runner |
+| HTTP | Node.js built-in fetch or a vetted HTTP client | [verify in Phase 0] | Fewer dependencies and explicit timeout control | Multiple HTTP libraries |
+| AI | DeepSeek API | [verify in Phase 0] | User requested DeepSeek integration | Other providers unless the user changes settings |
+
+Core modules:
+- `ProjectService`: creates, opens, renames, validates, indexes, and deletes local website projects.
+- `ExtractionService`: downloads and normalizes a public website into a local project.
+- `PreviewService`: starts, stops, and monitors a local static or framework-aware preview server.
+- `VisualEditorService`: maps preview selections to source files and applies reversible edits.
+- `PluginService`: discovers, validates, configures, executes, and records plugins.
+- `AIBuilderService`: turns a brief into a project plan, files, and a generated website.
+- `ToolDiscoveryService`: searches and evaluates GitHub tools, but never installs or runs one without approval.
+- `SettingsService`: manages theme, language, paths, ports, AI provider, and encrypted credentials.
+- `LoggingService`: writes structured local logs with correlation IDs and redaction.
+
+Cross-cutting design:
+- All IPC inputs are validated with Zod schemas before use.
+- Every filesystem write occurs inside the active project directory or an explicitly user-selected directory.
+- Every network call has a timeout, cancellation support, retry only for idempotent requests, exponential backoff with jitter, and a maximum retry count.
+- Every long-running operation has progress events, cancellation, and a final success, failure, or partial-failure state.
+- No empty catch blocks. Errors are typed, contextual, logged once at the boundary, and shown in Persian in the UI.
+- Every generated or extracted project receives a unique ID, creation timestamp, source URL when applicable, and integrity manifest.
+- Unsafe operations that overwrite files create a timestamped backup first.
+- SQLite migrations are versioned, forward-only in normal operation, and tested before release.
+- Application shutdown stops preview servers, terminates child processes, closes database connections, and flushes logs.
+
+Key data flows:
+
+Extraction:
+1. User enters a URL in the Extract screen.
+2. UI validates the URL and sends it over typed IPC.
+3. Main process validates the URL, blocks private network addresses, creates a project record, and starts extraction.
+4. Extraction downloads HTML, CSS, JavaScript, images, fonts, and referenced assets within configured limits.
+5. The service rewrites local asset paths, records a manifest, and saves files under the project folder.
+6. Progress, warnings, skipped resources, and final statistics stream to the UI.
+7. User can open the resulting project in Preview.
+
+Visual editing:
+1. User opens a local project and starts Preview.
+2. The embedded preview loads the local site.
+3. User activates Select mode and clicks an element.
+4. The editor identifies the element, its tag, text, attributes, computed styles, image source, and nearest source mapping.
+5. The side panel shows editable Persian fields for the selected element type.
+6. User edits values; the editor creates a reversible change proposal.
+7. On Save, the service updates the correct source file, creates a backup, records the change, and refreshes the preview.
+8. Undo and redo operate on the recorded change history.
+
+Plugin execution:
+1. User opens Plugins and adds a tool.
+2. User provides a manifest or lets the app analyze the supplied script and propose a manifest.
+3. The app validates the manifest, input schema, command, working directory, output contract, and security constraints.
+4. User fills the generated Persian form.
+5. Plugin runtime executes the tool as a child process with timeout, cancellation, environment allowlist, and streamed logs.
+6. Output files are copied or linked into the selected project location.
+7. The run history stores command metadata, duration, exit code, logs, and produced files.
+
+AI website generation:
+1. User opens AI Builder and writes a website brief in Persian or English.
+2. User selects page type, pages, color preference, language, sections, and output folder.
+3. The app validates input and calls DeepSeek only after showing the estimated action and receiving user approval.
+4. The service produces a structured project plan, then generates files incrementally.
+5. Generated files are validated, formatted, and written to a new project folder.
+6. The app opens the generated project in Preview.
+7. User can edit the result with the Visual Editor or run plugins on it.
+</architecture_and_stack>
+
+<requirements>
+## Functional requirements
+
+### Application shell
+
+- FR-1: WHEN the user launches WebForge Studio THE SYSTEM SHALL display a Persian RTL dashboard within 5 seconds on a normal development machine.
+- FR-2: WHEN the user opens Settings THE SYSTEM SHALL allow switching between Dark and Light themes and persist the choice.
+- FR-3: WHEN the user changes theme THE SYSTEM SHALL apply the selected theme immediately without restarting the application.
+- FR-4: WHEN the application starts THE SYSTEM SHALL restore the last selected theme, window size, and last opened project.
+- FR-5: WHEN any main screen is opened THE SYSTEM SHALL display Persian labels, Persian validation messages, and RTL layout.
+- FR-6: WHEN mixed Latin content such as a URL, file path, code, or email appears THE SYSTEM SHALL isolate it with correct bidirectional handling so it remains readable.
+- FR-7: WHEN the user opens Settings THE SYSTEM SHALL allow configuring default projects directory, preview port range, AI provider settings, extraction limits, and plugin directory.
+- FR-8: WHEN a required setting is missing or invalid THE SYSTEM SHALL show a specific Persian error and prevent the related operation from starting.
+
+### Project management
+
+- FR-9: WHEN the user clicks New Project THE SYSTEM SHALL allow selecting or creating a local folder.
+- FR-10: WHEN the user opens a project folder THE SYSTEM SHALL detect HTML entry files, package metadata, framework hints, asset folders, and whether the project is static or requires a build step.
+- FR-11: WHEN the selected folder does not contain a recognizable website entry point THE SYSTEM SHALL show a Persian explanation and list detected files instead of failing silently.
+- FR-12: WHEN the user deletes a project THE SYSTEM SHALL require explicit confirmation showing the exact folder path and move it to a timestamped backup location before removal from the project list.
+- FR-13: WHEN the user renames a project THE SYSTEM SHALL update the project record without moving or rewriting project files unless the user explicitly approves a folder rename.
+- FR-14: WHEN the user opens Projects THE SYSTEM SHALL show project name, path, type, last opened date, file count, and last preview status.
+
+### Website extraction
+
+- FR-15: WHEN the user enters a valid public HTTP or HTTPS URL and clicks Extract THE SYSTEM SHALL create a new local project and begin extraction.
+- FR-16: WHEN extraction starts THE SYSTEM SHALL display progress including current resource, completed count, total discovered count, downloaded bytes, and elapsed time.
+- FR-17: WHEN extraction completes THE SYSTEM SHALL save HTML, CSS, JavaScript, images, fonts, and directly referenced local assets into the project folder.
+- FR-18: WHEN extraction completes THE SYSTEM SHALL rewrite relative asset references so the extracted site can open from the local project folder.
+- FR-19: WHEN extraction encounters a resource that cannot be downloaded THE SYSTEM SHALL record it as a warning, continue processing other resources, and display the failed URL and reason in the extraction report.
+- FR-20: WHEN extraction exceeds the configured maximum file count, maximum total size, maximum depth, or time limit THE SYSTEM SHALL stop safely, preserve downloaded files, and show a partial-success report.
+- FR-21: WHEN the user cancels extraction THE SYSTEM SHALL stop new downloads, preserve completed files, terminate active requests, and mark the project as partially extracted.
+- FR-22: WHEN the user enters a private, loopback, link-local, or otherwise non-public URL THE SYSTEM SHALL reject it with a Persian security message.
+- FR-23: WHEN extraction completes THE SYSTEM SHALL generate `webforge.manifest.json` containing source URL, extraction time, file list, hashes, warnings, and skipped resources.
+- FR-24: WHEN the extracted site contains JavaScript-rendered content THE SYSTEM SHALL offer a rendered-DOM extraction mode using an embedded browser and clearly label the resulting files as rendered output.
+
+### Preview and local running
+
+- FR-25: WHEN the user opens a static project and clicks Preview THE SYSTEM SHALL start a local HTTP server on an available configured port and load it in the embedded preview.
+- FR-26: WHEN the user opens a project containing `package.json` and a recognized dev or preview script THE SYSTEM SHALL show the detected command and require explicit approval before executing it.
+- FR-27: WHEN a preview server starts THE SYSTEM SHALL display its URL, port, process ID, status, and a Stop button.
+- FR-28: WHEN the user clicks Stop Preview THE SYSTEM SHALL terminate the server process and release the port.
+- FR-29: WHEN the preview server crashes or exits unexpectedly THE SYSTEM SHALL show the exit code and recent log lines in Persian.
+- FR-30: WHEN the requested port is occupied THE SYSTEM SHALL select the next available port inside the configured range and display the actual URL.
+- FR-31: WHEN the user changes a file while preview is running THE SYSTEM SHALL refresh the preview according to the project type, with a maximum refresh delay of 2 seconds for static files.
+
+### Visual editing
+
+- FR-32: WHEN the user enables Select Mode THE SYSTEM SHALL allow clicking an element in the preview to select it.
+- FR-33: WHEN the user selects an image THE SYSTEM SHALL display its current source, alt text, dimensions, and a button to choose a replacement image from the local filesystem.
+- FR-34: WHEN the user selects text content THE SYSTEM SHALL allow editing the visible text and saving it to the corresponding source file.
+- FR-35: WHEN the user selects a link THE SYSTEM SHALL allow editing its `href` and target behavior.
+- FR-36: WHEN the user selects an element with styling THE SYSTEM SHALL allow editing color, background color, font size, font weight, padding, margin, border radius, and display visibility.
+- FR-37: WHEN the user saves a visual edit THE SYSTEM SHALL write the change to the correct project source file and create a backup of the original file.
+- FR-38: WHEN the user performs an edit THE SYSTEM SHALL support Undo and Redo for that session.
+- FR-39: WHEN the user attempts to edit an element whose source file cannot be identified THE SYSTEM SHALL show a Persian warning and offer to inspect the file manually instead of making an unsafe guess.
+- FR-40: WHEN the user edits an image THE SYSTEM SHALL validate the replacement file type and maximum size before copying it into the project assets folder.
+- FR-41: WHEN the user saves changes THE SYSTEM SHALL display a change summary containing affected file, line or selector, previous value, and new value.
+- FR-42: WHEN the preview contains dynamically generated content THE SYSTEM SHALL clearly warn that direct source mapping may be unavailable.
+
+### Plugin system
+
+- FR-43: WHEN the user opens Plugins THE SYSTEM SHALL display installed plugins with name, description, status, last run time, and available actions.
+- FR-44: WHEN the user adds a plugin THE SYSTEM SHALL accept a plugin manifest file, a script file, an executable, or a folder containing a manifest.
+- FR-45: WHEN a plugin manifest is loaded THE SYSTEM SHALL validate its name, version, command, input schema, output contract, working directory rules, and security declarations.
+- FR-46: WHEN a plugin requires user input THE SYSTEM SHALL automatically generate a Persian form from its declared input schema.
+- FR-47: WHEN the user runs a plugin THE SYSTEM SHALL execute it in a controlled child process with timeout, cancellation, streamed logs, and captured exit code.
+- FR-48: WHEN a plugin produces output files THE SYSTEM SHALL display them and allow the user to copy them into the active project.
+- FR-49: WHEN a plugin fails THE SYSTEM SHALL show exit code, stderr, elapsed time, and the exact failing step without losing previous logs.
+- FR-50: WHEN the user disables a plugin THE SYSTEM SHALL prevent it from appearing in run menus while retaining its configuration.
+- FR-51: WHEN the user deletes a plugin THE SYSTEM SHALL require confirmation and remove only the registration and app-managed files, never the user's original tool files.
+- FR-52: WHEN a plugin requests network access, filesystem access outside its workspace, environment variables, or elevated permissions THE SYSTEM SHALL show those requests explicitly and require approval.
+
+### AI website builder
+
+- FR-53: WHEN the user opens AI Builder THE SYSTEM SHALL provide fields for website purpose, business name, target audience, pages, sections, visual style, color preference, language, and special requirements.
+- FR-54: WHEN the user submits a brief without a configured AI key THE SYSTEM SHALL show a Persian setup guide and open the relevant Settings section.
+- FR-55: WHEN the user submits a valid brief THE SYSTEM SHALL first display a generated project plan for approval.
+- FR-56: WHEN the user approves the plan THE SYSTEM SHALL generate a complete static website project with HTML, CSS, JavaScript, assets, and a README.
+- FR-57: WHEN AI generation completes THE SYSTEM SHALL open the generated project in Preview and show generation statistics.
+- FR-58: WHEN AI generation fails midway THE SYSTEM SHALL preserve completed files, identify the failed step, and allow Resume or Restart.
+- FR-59: WHEN the user requests AI generation THE SYSTEM SHALL show the target model, approximate request count, and require explicit approval before the first paid API call.
+- FR-60: WHEN the user enables AI-assisted improvements THE SYSTEM SHALL restrict AI output to the active project folder and require review before overwriting existing files.
+
+### GitHub tool discovery
+
+- FR-61: WHEN the user opens Discover Tools THE SYSTEM SHALL allow searching GitHub by keywords such as website builder, landing page generator, HTML template, design system, CSS framework, and browser automation.
+- FR-62: WHEN search results appear THE SYSTEM SHALL show repository name, owner, description, license, last commit date, open issues count, stars, primary language, and security-relevant notes.
+- FR-63: WHEN the user selects a repository THE SYSTEM SHALL show its README summary, license, installation requirements, known risks, and compatibility assessment.
+- FR-64: WHEN the user chooses to integrate a repository THE SYSTEM SHALL require explicit approval and create a plugin adapter only after dependency and security review.
+- FR-65: WHEN a repository has no permissive license, is archived, has no recent maintenance, or requires unsafe permissions THE SYSTEM SHALL display a clear warning before integration.
+
+## Data models
+
+### Project
+
+| Field | Type | Nullable | Default | Constraints | Index |
+|---|---|---|---|---|---|
+| `id` | UUID | No | Generated | Primary key | Unique |
+| `name` | Text | No | None | 1–120 characters | Yes |
+| `path` | Text | No | None | Absolute local path, unique | Unique |
+| `type` | Text | No | None | `static`, `node`, `unknown` | Yes |
+| `source_url` | Text | Yes | Null | Valid HTTP/HTTPS URL when extracted | No |
+| `created_at` | ISO-8601 UTC | No | Now | Valid timestamp | Yes |
+| `updated_at` | ISO-8601 UTC | No | Now | Valid timestamp | Yes |
+| `last_opened_at` | ISO-8601 UTC | Yes | Null | Valid timestamp | No |
+| `status` | Text | No | `ready` | `ready`, `extracting`, `partial`, `error`, `archived` | Yes |
+
+Relationships:
+- One Project has many ExtractionRuns.
+- One Project has many PluginRuns.
+- One Project has many EditEvents.
+- Deleting a Project sets related run records to `archived`; it does not silently delete user files.
+
+### Plugin
+
+| Field | Type | Nullable | Default | Constraints | Index |
+|---|---|---|---|---|---|
+| `id` | UUID | No | Generated | Primary key | Unique |
+| `name` | Text | No | None | 1–100 characters | Unique |
+| `version` | Text | No | None | Semantic version string | No |
+| `entry` | Text | No | None | Absolute path to manifest or executable | Unique |
+| `runtime` | Text | No | None | `node`, `python`, `executable`, `shell` | Yes |
+| `enabled` | Boolean | No | `true` | None | No |
+| `requires_network` | Boolean | No | `false` | None | No |
+| `requires_project_write` | Boolean | No | `false` | None | No |
+| `created_at` | ISO-8601 UTC | No | Now | Valid timestamp | Yes |
+
+### PluginRun
+
+| Field | Type | Nullable | Default | Constraints | Index |
+|---|---|---|---|---|---|
+| `id` | UUID | No | Generated | Primary key | Unique |
+| `plugin_id` | UUID | No | None | Existing Plugin | Yes |
+| `project_id` | UUID | Yes | Null | Existing Project when applicable | Yes |
+| `status` | Text | No | None | `queued`, `running`, `success`, `failed`, `cancelled`, `timeout` | Yes |
+| `started_at` | ISO-8601 UTC | No | Now | Valid timestamp | Yes |
+| `finished_at` | ISO-8601 UTC | Yes | Null | Valid timestamp | No |
+| `exit_code` | Integer | Yes | Null | None | No |
+| `log_path` | Text | No | None | Absolute local path | No |
+| `output_paths` | JSON array | No | Empty array | Absolute local paths | No |
+
+### EditEvent
+
+| Field | Type | Nullable | Default | Constraints | Index |
+|---|---|---|---|---|---|
+| `id` | UUID | No | Generated | Primary key | Unique |
+| `project_id` | UUID | No | None | Existing Project | Yes |
+| `file_path` | Text | No | None | Path inside project | Yes |
+| `kind` | Text | No | None | `text`, `attribute`, `style`, `image`, `structure` | Yes |
+| `before` | Text | No | None | Serialized previous value | No |
+| `after` | Text | No | None | Serialized new value | No |
+| `created_at` | ISO-8601 UTC | No | Now | Valid timestamp | Yes |
+| `reverted` | Boolean | No | `false` | None | No |
+
+### Setting
+
+| Field | Type | Nullable | Default | Constraints | Index |
+|---|---|---|---|---|---|
+| `key` | Text | No | None | Stable English key | Unique |
+| `value` | JSON | No | None | Schema-validated value | No |
+| `updated_at` | ISO-8601 UTC | No | Now | Valid timestamp | No |
+
+Invariants:
+- A Project path must exist and must be inside one of the user-approved roots.
+- A PluginRun must reference an existing Plugin.
+- An EditEvent must reference an existing Project and a file inside that Project.
+- A plugin cannot write outside its approved working directory.
+- A project cannot have two active preview servers.
+
+## State machines
+
+### Project
+
+States: `ready`, `extracting`, `partial`, `error`, `archived`.
+
+| From | To | Guard | Forbidden transition and error |
+|---|---|---|---|
+| `ready` | `extracting` | No active extraction for the project | `error`: `PROJECT_ALREADY_EXTRACTING` |
+| `extracting` | `ready` | Extraction completed without blocking errors | None |
+| `extracting` | `partial` | User cancelled or a configured limit stopped extraction | None |
+| `extracting` | `error` | Fatal extraction failure | None |
+| `partial` | `extracting` | User retries extraction | None |
+| `error` | `extracting` | User retries after reviewing the error | None |
+| Any active state | `archived` | User confirms archive | `error`: `PROJECT_HAS_ACTIVE_TASK` |
+
+### PluginRun
+
+States: `queued`, `running`, `success`, `failed`, `cancelled`, `timeout`.
+
+| From | To | Guard | Forbidden transition and error |
+|---|---|---|---|
+| `queued` | `running` | Plugin enabled and inputs valid | `error`: `PLUGIN_DISABLED` or `PLUGIN_INPUT_INVALID` |
+| `running` | `success` | Exit code 0 and output contract satisfied | None |
+| `running` | `failed` | Non-zero exit code or invalid output | None |
+| `running` | `cancelled` | User cancels | None |
+| `running` | `timeout` | Configured timeout elapses | None |
+| Terminal state | Any state | None | `error`: `PLUGIN_RUN_ALREADY_FINISHED` |
+
+## Permission matrix
+
+Roles: `owner` is the single local Windows user.
+
+| Action | Owner |
+|---|---|
+| Open dashboard | Allow |
+| Create project | Allow |
+| Extract public website | Allow |
+| Open local folder | Allow |
+| Run preview | Allow |
+| Edit project files | Allow |
+| Add plugin | Allow |
+| Run plugin | Allow |
+| Approve plugin permissions | Allow |
+| Use AI generation | Allow after key setup and approval |
+| Change settings | Allow |
+| Delete project | Allow after confirmation |
+| Access another user's files | Deny |
+| Write outside approved roots | Deny |
+| Run plugin with unapproved permissions | Deny |
+
+## Plugin manifest contract
+
+Each user-supplied tool must provide `plugin.manifest.json`:
+
+```json
+{
+  "name": "example-tool",
+  "displayName": "نام فارسی ابزار",
+  "version": "1.0.0",
+  "runtime": "node",
+  "command": "node",
+  "args": ["tool.js"],
+  "cwd": ".",
+  "inputs": [
+    {
+      "key": "siteUrl",
+      "label": "آدرس سایت",
+      "type": "url",
+      "required": true
+    },
+    {
+      "key": "outputFolder",
+      "label": "پوشه خروجی",
+      "type": "projectPath",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "key": "report",
+      "type": "file",
+      "path": "report.json"
+    }
+  ],
+  "permissions": {
+    "network": false,
+    "projectWrite": true,
+    "environment": []
+  },
+  "timeoutSeconds": 300
+}
+```
+
+The application must:
+- Validate this schema with Zod.
+- Generate the Persian input form automatically.
+- Pass inputs as documented by the plugin, using arguments, stdin, or environment variables according to the manifest.
+- Capture stdout, stderr, exit code, duration, and output files.
+- Reject plugins that declare no command, unsafe paths, or permissions the user did not approve.
+
+## UI specifications
+
+### Dashboard
+
+Purpose: quick access to all main workflows.
+
+Layout:
+- Right-side vertical navigation because the UI is RTL.
+- Main content area with large action cards.
+- Top bar with application name, active project, theme toggle, and Settings.
+
+Components:
+- Cards for: Extract Website, Open Project, Visual Editor, Plugins, AI Builder, Discover Tools, Settings.
+- Recent projects list.
+- System status area for preview servers, running plugins, and AI availability.
+
+States:
+| State | Exact Persian copy |
+|---|---|
+| Loading | «در حال بارگذاری فضای کاری…» |
+| Empty projects | «هنوز پروژه‌ای نداری. برای شروع، یک سایت را استخراج کن یا یک پوشه را باز کن.» |
+| Preview running | «یک پیش‌نمایش فعال داری.» |
+| Plugin running | «یک ابزار در حال اجراست.» |
+| AI not configured | «برای استفاده از هوش مصنوعی، کلید API را در تنظیمات وارد کن.» |
+| Error | «خطایی رخ داد. جزئیات را در گزارش خطا ببین.» |
+
+Accessibility:
+- All interactive elements are reachable by Tab in logical RTL order.
+- Every icon-only button has a Persian `aria-label`.
+- Focus outlines are visible.
+- Color contrast meets WCAG 2.2 AA.
+
+### Extract Website
+
+Purpose: convert a public URL into a local editable project.
+
+Layout:
+- URL input.
+- Project name input.
+- Destination folder selector.
+- Extraction options: maximum files, maximum size, maximum depth, timeout, rendered-DOM mode.
+- Start, Cancel, and Open Result buttons.
+- Progress panel and warning list.
+
+States:
+| State | Exact Persian copy |
+|---|---|
+| Idle | «آدرس سایت را وارد کن تا استخراج شروع شود.» |
+| Validating | «در حال بررسی آدرس…» |
+| Running | «در حال استخراج سایت…» |
+| Success | «استخراج کامل شد.» |
+| Partial | «استخراج با هشدار کامل شد.» |
+| Cancelled | «استخراج لغو شد؛ فایل‌های دانلودشده حفظ شدند.» |
+| Error | «استخراج ناموفق بود.» |
+| Private URL | «این آدرس امن نیست یا به شبکه داخلی اشاره دارد.» |
+| Invalid URL | «آدرس سایت معتبر نیست.» |
+
+Validation:
+- URL must start with `http://` or `https://`.
+- Hostname must resolve to a public address.
+- Project name must be 1–120 characters.
+- Destination must be writable and inside an approved root.
+
+### Project Workspace
+
+Purpose: manage files, preview, and editing for one project.
+
+Layout:
+- Left file explorer in RTL orientation.
+- Center embedded preview.
+- Right contextual inspector.
+- Bottom panel for logs, tasks, and plugin output.
+
+States:
+| State | Exact Persian copy |
+|---|---|
+| Loading project | «در حال باز کردن پروژه…» |
+| Empty folder | «این پوشه فایل قابل‌اجرایی برای سایت ندارد.» |
+| Preview stopped | «پیش‌نمایش متوقف است.» |
+| Preview starting | «در حال اجرای پیش‌نمایش…» |
+| Preview running | «پیش‌نمایش فعال است.» |
+| Preview error | «پیش‌نمایش با خطا متوقف شد.» |
+| Select mode off | «برای ویرایش، حالت انتخاب را فعال کن.» |
+| Select mode on | «روی بخش موردنظر کلیک کن.» |
+| Unmapped element | «نتوانستم فایل منبع این بخش را تشخیص دهم.» |
+| Save success | «تغییرات ذخیره شد.» |
+| Save error | «ذخیره تغییر ناموفق بود.» |
+
+### Plugins
+
+Purpose: register, configure, and run the user's tools.
+
+Layout:
+- Plugin list.
+- Add Plugin button.
+- Plugin detail panel with manifest information, permissions, inputs, and run history.
+- Run form generated from the manifest.
+- Live log viewer.
+
+States:
+| State | Exact Persian copy |
+|---|---|
+| No plugins | «هنوز ابزاری اضافه نکرده‌ای.» |
+| Plugin disabled | «این ابزار غیرفعال است.» |
+| Missing input | «این فیلد الزامی است.» |
+| Running | «ابزار در حال اجراست…» |
+| Success | «ابزار با موفقیت اجرا شد.» |
+| Failed | «اجرای ابزار ناموفق بود.» |
+| Timeout | «اجرای ابزار به دلیل پایان زمان مجاز متوقف شد.» |
+| Permission needed | «این ابزار به دسترسی زیر نیاز دارد:» |
+
+### AI Builder
+
+Purpose: generate a complete website from a brief.
+
+Layout:
+- Brief textarea.
+- Structured fields for business name, audience, pages, style, colors, language, and requirements.
+- Plan preview.
+- Generate, Approve Plan, Cancel, and Open Project buttons.
+- Generation progress and file list.
+
+States:
+| State | Exact Persian copy |
+|---|---|
+| Idle | «توضیح بده چه سایتی می‌خواهی تا برنامه ساخت را آماده کنیم.» |
+| Planning | «در حال آماده‌سازی برنامه سایت…» |
+| Awaiting approval | «برنامه سایت آماده است؛ برای ادامه تأیید کن.» |
+| Generating | «در حال ساخت سایت…» |
+| Success | «سایت ساخته شد.» |
+| Partial failure | «بخشی از سایت ساخته شد؛ می‌توانی ادامه بدهی یا از نو شروع کنی.» |
+| Missing API key | «کلید API هوش مصنوعی تنظیم نشده است.» |
+| API error | «سرویس هوش مصنوعی پاسخ معتبری نداد.» |
+
+## Internationalization
+
+- Primary locale: `fa-IR`.
+- Direction: `dir="rtl"` and `lang="fa"` on the root document.
+- All user-facing strings live in `src/shared/i18n/fa.json` with stable English keys.
+- Use CSS logical properties: `margin-inline-start`, `padding-inline-end`, `inset-inline-start`, and equivalent properties.
+- Use `Intl.DateTimeFormat`, `Intl.NumberFormat`, and `Intl.PluralRules` with `fa-IR`.
+- Store all timestamps as UTC ISO-8601.
+- Display dates using the Persian calendar through `Intl` with the `persian` calendar.
+- Use Persian digits in user-facing counters, dates, and statistics.
+- Keep Latin digits in code, file paths, URLs, ports, and technical logs.
+- Normalize Arabic yeh (`ي`) and kaf (`ك`) to Persian yeh (`ی`) and kaf (`ک`) in user search input while preserving the original text where needed.
+- Preserve zero-width non-joiner (`U+200C`) in Persian text.
+- Use bidirectional isolation for URLs, paths, emails, and code snippets.
+- Use a Persian font stack with verified Persian glyph coverage and appropriate Latin fallbacks. [verify in Phase 0]
+- Ensure RTL-correct icons, navigation, progress bars, tooltips, context menus, and print output.
+
+## Worked business-rule examples
+
+| Scenario | Input | Expected result |
+|---|---|---|
+| Extract static site | `https://example.com` | New project created; HTML, CSS, images, and referenced assets downloaded; local paths rewritten; manifest created |
+| Private URL | `http://localhost:3000` | Rejected with `PRIVATE_URL_NOT_ALLOWED` |
+| Invalid URL | `example` | Rejected with Persian message «آدرس سایت معتبر نیست.» |
+| Extraction limit | 10,000-file limit and 15,000 discovered files | Extraction stops at limit, marks project `partial`, and lists remaining resources |
+| Preview port conflict | Configured range starts at 5173 and port 5173 is occupied | App selects next free port and displays the actual URL |
+| Image replacement | User selects a 4 MB PNG and limit is 10 MB | File copied to assets, source updated, backup created |
+| Image too large | User selects a 20 MB file and limit is 10 MB | Rejected with Persian size error; no file copied |
+| Plugin timeout | 300-second timeout and process runs 400 seconds | Process terminated, status `timeout`, logs preserved |
+| Plugin invalid output | Manifest expects `report.json` but file is absent | Status `failed`, Persian error identifies missing output |
+| AI without key | User clicks Generate | Persian setup message; no API request sent |
+| AI generation failure | Network fails after 3 files | Completed files preserved; Resume offered |
+| Project delete | User confirms deletion | Files moved to timestamped backup; project removed from active list |
+
+## Non-functional requirements
+
+### Security
+
+- NFR-1: All IPC messages must be validated with Zod at the main-process boundary.
+- NFR-2: The renderer must have `contextIsolation: true`, `nodeIntegration: false`, and a narrowly scoped `contextBridge` API.
+- NFR-3: The app must block extraction requests to private, loopback, link-local, and multicast IP ranges.
+- NFR-4: All SQL access must use parameterized queries.
+- NFR-5: All file writes must be confined to approved project roots.
+- NFR-6: All downloaded files must receive randomized or sanitized names and must never be executed automatically.
+- NFR-7: The app must enforce maximum extraction size, file count, depth, and duration.
+- NFR-8: The app must enforce maximum uploaded or selected image size and validate image type by content, not only extension.
+- NFR-9: All secrets must be stored encrypted at rest and excluded from logs, IPC payloads, screenshots, and error messages.
+- NFR-10: All logs must redact API keys, tokens, passwords, cookies, authorization headers, and personal data.
+- NFR-11: Every plugin execution must use an explicit timeout, working-directory restriction, environment allowlist, and cancellation support.
+- NFR-12: Every plugin permission request must be explicit and approved by the user.
+- NFR-13: The app must not execute downloaded website JavaScript with elevated filesystem or process privileges.
+- NFR-14: The app must use a Content Security Policy that prevents remote script injection into the application UI.
+- NFR-15: Dependency audit must run in the verification gate and fail on known high-severity vulnerabilities. [verify in Phase 0]
+
+### Reliability
+
+- NFR-16: Every network request must have a timeout of 30 seconds unless the user configures a different value.
+- NFR-17: Every child process must have a configurable timeout and a hard maximum of 30 minutes.
+- NFR-18: Retries are allowed only for idempotent GET requests and must use exponential backoff with jitter, maximum 3 attempts.
+- NFR-19: A crash of one preview server or plugin must not crash the application.
+- NFR-20: Application shutdown must terminate child processes and release ports.
+- NFR-21: Every file overwrite must create a timestamped backup.
+- NFR-22: Every failed operation must leave the previous valid state intact.
+
+### Performance
+
+- NFR-23: Dashboard must become interactive within 5 seconds after launch on the development machine.
+- NFR-24: Opening a project with up to 5,000 files must display the file tree within 3 seconds.
+- NFR-25: Static preview must start within 3 seconds.
+- NFR-26: Visual edit save must complete within 2 seconds for files up to 1 MB.
+- NFR-27: The renderer bundle must not exceed 5 MB before compression.
+- NFR-28: The application must handle projects with up to 20,000 files without freezing the UI.
+
+### Type safety and quality
+
+- NFR-29: TypeScript strict mode must pass with zero errors.
+- NFR-30: Lint and format checks must pass with zero warnings.
+- NFR-31: No implicit or explicit `any` is allowed without a documented justification in `DECISIONS.md`.
+- NFR-32: Cyclomatic complexity per function must not exceed 10.
+- NFR-33: Every public service function must have a typed input and output.
+
+### Accessibility
+
+- NFR-34: The UI must meet WCAG 2.2 AA for contrast, keyboard navigation, focus visibility, and accessible names.
+- NFR-35: Every screen must be operable using keyboard only.
+- NFR-36: Automated accessibility checks must pass in the E2E suite.
+
+### Privacy
+
+- NFR-37: The app must store extracted sites, projects, logs, and settings only on the local machine.
+- NFR-38: The app must not send project files to any external service unless the user explicitly approves that action.
+- NFR-39: The user must be able to export project metadata as JSON and delete all local application data from Settings.
+
+### Observability
+
+- NFR-40: Every operation must have a correlation ID.
+- NFR-41: Logs must be structured JSON and stored locally.
+- NFR-42: The app must log extraction start/end, preview start/stop, plugin start/end, AI request approval, file-save events, and errors.
+- NFR-43: The app must expose a local diagnostics view showing active processes, ports, database status, and recent errors.
+
+### Compatibility
+
+- NFR-44: The app must run on Windows 10 and Windows 11 x64.
+- NFR-45: The app must support high-DPI displays.
+- NFR-46: The app must support Persian and English text rendering without broken glyphs.
+</requirements>
+
+<scope_and_guardrails>
+In scope for version 1:
+- Persian RTL desktop UI.
+- Local project management.
+- Website extraction.
+- Local preview.
+- Visual editing for images, text, links, and common styles.
+- Plugin registration and execution.
+- AI website generation using DeepSeek.
+- GitHub tool discovery and evaluation.
+- Settings, themes, logs, backups, and diagnostics.
+- Automated tests and verification gates.
+
+Out of scope for version 1:
+- Multi-user accounts and cloud synchronization.
+- Publishing directly to hosting providers.
+- Full Git integration inside the application.
+- Database-driven CMS editing.
+- Mobile application support.
+- macOS and Linux release packaging.
+- Automated purchase, deployment, email sending, or domain registration.
+- Running arbitrary GitHub repositories without review and approval.
+
+Do not touch:
+- `.env`
+- User-selected project folders outside approved operations
+- `package-lock.json` by hand
+- Generated build output
+- User plugin source files beyond creating the app-side registration
+
+Destructive or irreversible actions require explicit approval with the exact command shown beforehand:
+- Deleting or truncating database tables
+- Deleting files the agent did not create
+- `rm -rf`
+- `git push --force`
+- `git reset --hard`
+- Git history rewrites
+- Global package installs
+- Paid API calls
+- Production deployment
+- Changing CI secrets
+
+Test integrity:
+- Never alter a test to hide a bug.
+- Never delete, skip, weaken, or special-case tests.
+- Modify an existing test only when `SPEC.md` changes, with user approval and a `DECISIONS.md` entry.
+
+Scope discipline:
+- Improvements outside this specification go into the Suggestions section of `DECISIONS.md`.
+- Do not implement them without approval.
+</scope_and_guardrails>
+
+<agent_constraints>
+## A. Zero lazy coding
+
+- Every emitted file must be complete, production-ready, and end-to-end functional.
+- Every function, branch, state, error path, loading state, empty state, and cancellation path must be implemented.
+- Banned in committed code:
+  - `TODO`
+  - `FIXME`
+  - `XXX`
+  - `HACK`
+  - `implement later`
+  - `rest of the code`
+  - `same as above`
+  - `...`
+  - Placeholder or lorem-ipsum content in production paths
+  - Fake or hardcoded data in production paths
+  - Functions that only throw `not implemented`
+  - Empty function bodies
+  - Empty catch blocks
+  - Commented-out code
+  - Leftover debug prints
+  - Mock logic outside test code
+- In M0, create `scripts/check-no-placeholders.mjs`.
+- The script must scan `src/` and `tests/` for the banned patterns and for skipped tests: `.skip`, `.only`, `xit`, `xfail`, `pytest.mark.skip`, and `@Ignore`.
+- The script must exit non-zero on any hit.
+- Add the script to every verification gate and CI workflow.
+
+## B. Test integrity and no reward hacking
+
+- Tests are the executable specification.
+- Never delete or skip tests.
+- Never weaken assertions.
+- Never blindly update snapshots.
+- Never lower coverage thresholds.
+- Never loosen lint or type rules.
+- Never add `@ts-ignore`, `eslint-disable`, `# type: ignore`, or `noqa` to silence a real problem.
+- Never special-case test inputs in production code.
+- Never mock the unit under test.
+- Mock only true external boundaries: network, clock, randomness, third-party APIs, and child processes when necessary.
+- Prefer real temporary folders and real SQLite databases for integration tests.
+- A suppression is allowed only with an inline reason and a `DECISIONS.md` entry.
+
+## C. Evidence rule
+
+- Never claim that something works, passes, or is fixed without running the relevant command in the current session and showing its real output.
+- For every verification, show: command, exit code, and relevant output excerpt.
+- If a command cannot run, write `NOT VERIFIED`, state why, and provide exact manual steps.
+- Verify the real user path, not only unit tests: launch the app, exercise the screen, run the preview, and execute the plugin flow.
+
+## D. No guessing
+
+- Do not invent APIs, flags, options, package names, or library behavior.
+- Read installed package types, README files, or official current documentation before using them.
+- When a requirement affects correctness, security, or data, ask.
+- Otherwise use the default stated in this prompt and log it.
+
+## E. Code quality
+
+- Strict type checking passes with zero errors.
+- Lint and formatter pass with zero warnings.
+- Functions do one thing and have intent-revealing names.
+- Comments explain why, not what.
+- No dead code.
+- Errors are typed or structured, carry context, are logged once at the boundary, and appear as a Persian user-visible state.
+- Every async operation has timeout, structured error handling, cancellation where relevant, and a defined UI state.
+- Inputs are validated at every trust boundary.
+
+## F. Git discipline
+
+- Commit only when all gates are green.
+- Use small Conventional Commits.
+- Commit message body must state what changed and why.
+- Never commit secrets, `.env`, build artifacts, extracted websites, or user project data.
+
+## G. Context hygiene
+
+- Keep `PROGRESS.md` accurate after every milestone.
+- Search before reading whole files.
+- Do not paste huge command outputs; quote only relevant lines.
+- Use a fresh session or subagent for independent review.
+
+## H. Two-attempt rule
+
+- If two attempts at the same fix fail, stop.
+- Record attempted solutions, observed evidence, and hypotheses.
+- Change strategy or ask the user.
+- Never loop on the same approach.
+
+## I. Secrets
+
+- Never print, log, or commit secret values.
+- Refer to environment variables by name only.
+- Never ask the user to paste secrets into chat.
+</agent_constraints>
+
+<workflow>
+## Phase 0 — Explore, read-only
+
+Make zero modifications to application files.
+
+1. Inspect Windows version, architecture, installed Node.js, npm, Git, and available browsers.
+2. Inspect the current directory and Git state.
+3. Run every setup, run, test, lint, typecheck, build, and health-check command that can run without modifying the project.
+4. Verify every required package exists in npm and record its version, license, maintenance status, and vulnerabilities.
+5. Verify DeepSeek API documentation and required environment variables by name only; do not call paid endpoints.
+6. Verify Electron, React, TypeScript, Vitest, Playwright, Zod, SQLite tooling, and Tailwind current documentation.
+7. List every discrepancy between this prompt and the actual environment with a proposed resolution.
+8. Produce `docs/BASELINE_REPORT.md` containing environment, verified commands, verified dependencies, discrepancies, open questions, and risks.
+9. STOP.
+
+## Phase 1 — Plan
+
+Create these files, then STOP for approval:
+
+1. `SPEC.md`: complete normalized specification containing every FR, NFR, AC, data model, API/IPC contract, UI screen, state machine, permission rule, example, and assumption.
+2. `PLAN.md`: milestones M0 through Mn.
+3. `PROGRESS.md`: milestone status table and chronological log.
+4. `DECISIONS.md`: assumptions, decisions, risks, and suggestions.
+
+Milestones:
+
+- M0: Walking skeleton. Electron app launches, Persian RTL dashboard renders, theme toggle works, SQLite opens, typed IPC works, lint/typecheck/test/build/placeholder gate pass, one real E2E test passes, CI workflow exists.
+- M1: Project core. Create/open/list/rename/archive projects, project detection, file tree, SQLite persistence, and diagnostics.
+- M2: Website extraction. URL validation, download pipeline, asset handling, path rewriting, progress, cancellation, limits, warnings, manifest, and extraction report.
+- M3: Preview. Local static server, embedded preview, port management, start/stop, logs, refresh, and Node project detection with approval.
+- M4: Visual editor. Select mode, element inspection, image/text/link/style editing, source mapping, backups, undo/redo, and save summaries.
+- M5: Plugin system. Manifest validation, Persian form generation, process execution, logs, output handling, permissions, timeout, cancellation, and run history.
+- M6: AI Builder. DeepSeek integration, brief input, plan approval, incremental generation, validation, preview, resume, and failure handling.
+- M7: Tool discovery. GitHub search, repository evaluation, risk report, approval flow, and plugin adapter creation.
+- M8: Hardening. Security audit, dependency audit, error injection, accessibility, RTL/i18n, performance, dead-code removal, and final documentation.
+
+Each milestone must list:
+- Goal.
+- FR/NFR coverage.
+- Tasks.
+- Files.
+- Tests to write first.
+- Acceptance criteria.
+- Verification commands.
+- Definition of done.
+- Rollback commit.
+
+Accept change requests, update all affected files consistently, and re-present.
+STOP.
+
+## Phase 2 — Build
+
+Implement one milestone at a time, test-first.
+
+1. Restate the milestone in at most 5 lines.
+2. Write failing tests encoding its acceptance criteria.
+3. Run tests and show that they fail for the right reason.
+4. Implement the smallest complete solution with no stubs.
+5. Run tests, lint, typecheck, build, and placeholder gate until green.
+6. Refactor while green.
+7. Verify the real end-to-end path and capture evidence.
+8. Run the full regression suite.
+9. Commit and update `PROGRESS.md`.
+10. Post a Milestone Report containing milestone, status, AC table with command and real output excerpt, changed files, tests added, deviations, risks, open issues, and next step.
+11. STOP for approval unless the user explicitly authorized automatic continuation through a named milestone.
+
+## Phase 3 — Hardening
+
+1. Audit every security requirement.
+2. Run dependency audit.
+3. Simulate API failures, timeouts, network latency, invalid and hostile inputs, duplicate requests, concurrent edits, killed processes, and disk-full conditions.
+4. Test accessibility, Persian RTL, theme switching, and mixed-direction content.
+5. Measure performance budgets.
+6. Remove dead code and unused dependencies.
+7. Fix findings with tests.
+8. STOP.
+
+## Phase 4 — Independent review
+
+In a fresh context or subagent that has not seen the build history:
+
+1. Read `SPEC.md` and the full diff.
+2. Check requirement coverage, placeholders, test integrity, security, error handling, type safety, dependency hygiene, and documentation.
+3. Write `REVIEW.md` with findings classified as `blocker`, `major`, or `minor`.
+4. Fix every blocker and major finding.
+5. Re-review until no blocker or major finding remains.
+6. STOP.
+
+## Phase 5 — Handover
+
+1. Complete `README.md` with purpose, prerequisites, setup, run, test, build, packaging, environment variables, architecture, troubleshooting, and known limitations.
+2. Complete `.env.example`.
+3. Run the final verification matrix and save it to `docs/VERIFICATION_REPORT.md`.
+4. Create a final acceptance checklist for the user.
+5. Create a release tag.
+6. STOP.
+</workflow>
+
+<verification>
+## Command table
+
+| Purpose | Command | Expected exit code | Expected output |
+|---|---|---:|---|
+| Install dependencies | `npm install` | 0 | Dependencies installed and lockfile updated |
+| Development app | `npm run dev` | 0 while running | Electron window opens with Persian dashboard |
+| Lint | `npm run lint` | 0 | No errors or warnings |
+| Format check | `npm run format:check` | 0 | No formatting differences |
+| Typecheck | `npm run typecheck` | 0 | No TypeScript errors |
+| Unit tests | `npm run test:unit` | 0 | All unit tests pass |
+| Integration tests | `npm run test:integration` | 0 | All integration tests pass |
+| E2E tests | `npm run test:e2e` | 0 | All Electron E2E tests pass |
+| Build | `npm run build` | 0 | Production build created |
+| Windows package | `npm run package:win` | 0 | Windows installer or portable package created |
+| Placeholder gate | `npm run check:placeholders` | 0 | No banned patterns found |
+| Dependency audit | `npm run audit:deps` | 0 | No unaccepted high-severity vulnerabilities |
+| Full verification | `npm run verify` | 0 | All gates pass |
+| Health check | Launch app, then run `npm run test:e2e` | 0 | Dashboard, preview, and core IPC verified |
+
+## Test strategy
+
+- Unit tests: validation schemas, path sanitization, URL security checks, manifest parsing, file mapping, change application, settings, and Persian formatting.
+- Integration tests: SQLite operations, project creation, extraction pipeline with local HTTP fixtures, preview server lifecycle, plugin process execution, and file backups.
+- E2E tests: real Electron launch, dashboard, extraction flow using a local test server, preview, visual edit, plugin run, AI Builder with a mocked AI boundary, theme switching, and RTL layout.
+- Fixtures: local HTML/CSS/JS sites, broken links, large files, invalid manifests, slow endpoints, and invalid images.
+- Mock only external network boundaries and paid AI calls.
+- Use property-based tests for URL normalization, path sanitization, and change serialization.
+- Coverage is a floor, not the goal; every acceptance criterion must have a direct test or observable E2E check.
+
+## Acceptance traceability matrix
+
+| AC-ID | FR/NFR | Test level | Verification command | Expected observable output | Pass criterion |
+|---|---|---|---|---|---|
+| AC-1 | FR-1 | E2E | `npm run test:e2e` | Dashboard visible | Persian RTL dashboard loads |
+| AC-2 | FR-2, FR-3 | E2E | `npm run test:e2e` | Theme changes | Dark and light themes apply and persist |
+| AC-3 | FR-9–FR-14 | Integration | `npm run test:integration` | Project CRUD works | Project records and folders behave correctly |
+| AC-4 | FR-15–FR-24 | Integration + E2E | `npm run test:integration` and `npm run test:e2e` | Extraction works | Assets downloaded, paths rewritten, manifest created |
+| AC-5 | FR-25–FR-31 | Integration + E2E | `npm run test:integration` and `npm run test:e2e` | Preview works | Server starts, preview loads, stop releases port |
+| AC-6 | FR-32–FR-42 | E2E | `npm run test:e2e` | Visual edit works | Element edited, file updated, backup created, undo works |
+| AC-7 | FR-43–FR-52 | Integration + E2E | `npm run test:integration` and `npm run test:e2e` | Plugin runs | Manifest validated, process executed, logs and outputs captured |
+| AC-8 | FR-53–FR-60 | Integration + E2E | `npm run test:integration` and `npm run test:e2e` | AI Builder works | Plan approved, files generated, preview opens |
+| AC-9 | FR-61–FR-65 | Integration | `npm run test:integration` | Discovery works | Repository data and risk assessment displayed |
+| AC-10 | NFR-1–NFR-15 | Unit + Integration | `npm run verify` | Security gates pass | Validation, isolation, redaction, and limits enforced |
+| AC-11 | NFR-16–NFR-22 | Integration | `npm run test:integration` | Failure handling works | Timeouts, cancellation, backups, and recovery verified |
+| AC-12 | NFR-23–NFR-28 | E2E | `npm run test:e2e` | Performance measured | Budgets met or failures documented |
+| AC-13 | NFR-29–NFR-33 | Static analysis | `npm run lint`, `npm run typecheck` | Zero issues | Strict quality gates pass |
+| AC-14 | NFR-34–NFR-36 | E2E | `npm run test:e2e` | Accessibility passes | Keyboard, focus, contrast, and labels verified |
+| AC-15 | NFR-37–NFR-39 | Integration | `npm run test:integration` | Privacy controls work | Local-only storage, export, and deletion verified |
+| AC-16 | NFR-40–NFR-43 | Integration | `npm run test:integration` | Observability works | Correlation IDs, structured logs, and diagnostics verified |
+| AC-17 | NFR-44–NFR-46 | E2E | `npm run test:e2e` | Windows compatibility verified | App runs correctly on Windows with Persian text |
+
+## Failure journeys
+
+| ID | Trigger | System behavior | User-visible result | Log or metric | Recovery |
+|---|---|---|---|---|---|
+| J-1 | Extraction URL unreachable | Request times out or fails | Persian error and partial report | `EXTRACTION_FAILED` | Retry or cancel |
+| J-2 | Extraction resource blocked | Resource skipped | Warning listed in report | `RESOURCE_SKIPPED` | Continue or retry failed resources |
+| J-3 | Preview port occupied | Next free port selected | Actual URL displayed | `PORT_FALLBACK` | Use displayed URL |
+| J-4 | Preview process crashes | Process monitored | Persian error and recent logs | `PREVIEW_CRASHED` | Restart preview |
+| J-5 | Plugin exits non-zero | Run marked failed | stderr and exit code shown | `PLUGIN_FAILED` | Inspect logs and rerun |
+| J-6 | Plugin hangs | Timeout terminates process | Persian timeout message | `PLUGIN_TIMEOUT` | Adjust timeout or fix tool |
+| J-7 | AI API unauthorized | Request stopped before file generation | Persian key error | `AI_UNAUTHORIZED` | Update key in Settings |
+| J-8 | AI response invalid | Generation halted safely | Persian validation error | `AI_RESPONSE_INVALID` | Retry or adjust brief |
+| J-9 | Concurrent edit of same file | Change queued or rejected safely | Persian conflict message | `EDIT_CONFLICT` | Review diff and reapply |
+| J-10 | Disk full | Write stopped before corruption | Persian storage error | `DISK_WRITE_FAILED` | Free space and retry |
+| J-11 | Duplicate plugin name | Registration rejected | Persian duplicate error | `PLUGIN_DUPLICATE` | Rename plugin |
+| J-12 | Invalid plugin manifest | Plugin not registered | Persian validation details | `PLUGIN_MANIFEST_INVALID` | Fix manifest |
+| J-13 | Offline during local editing | Local features continue | No unnecessary network error | None | Continue editing |
+| J-14 | Offline during extraction or AI | Operation fails safely | Persian offline message | `NETWORK_UNAVAILABLE` | Retry when online |
+
+## Error-injection plan
+
+- Use a local HTTP fixture server to simulate slow responses, broken assets, 404s, 500s, malformed HTML, and oversized files.
+- Use a fake plugin script that exits non-zero, writes invalid output, ignores cancellation, and sleeps beyond timeout.
+- Use a mocked DeepSeek client for invalid JSON, HTTP 401, HTTP 429, timeout, and partial responses.
+- Simulate concurrent edits by issuing two save operations for the same file.
+- Simulate disk-full conditions with a constrained temporary filesystem where supported.
+- Kill preview and plugin child processes during tests and verify recovery.
+</verification>
+
+<communication_and_resume>
+- Ask questions only for ambiguities affecting correctness, security, or data.
+- Batch questions, maximum 5, with proposed defaults.
+- Every status message must contain: status, evidence, risks, next step.
+- Spec changes require updating `SPEC.md`, `DECISIONS.md`, affected ACs, and tests, followed by user approval.
+- Resume protocol for any fresh session:
+  1. Read `SPEC.md`, `PLAN.md`, `PROGRESS.md`, and `DECISIONS.md`.
+  2. Run `git status` and `git log --oneline -n 30`.
+  3. Run `npm run verify`.
+  4. Continue from the first incomplete milestone.
+  5. Do not redo completed work.
+  6. If trackers and Git disagree, trust Git and test results, correct trackers, and report the discrepancy.
+</communication_and_resume>
+
+<first_action>
+Begin Phase 0 now.
+
+Make zero modifications to application files. Inspect the Windows environment, installed tools, Git state, and project directory. Verify the feasibility of every command listed in this prompt. Verify current Electron, React, TypeScript, Vitest, Playwright, Zod, SQLite tooling, and Tailwind documentation before writing implementation code. Produce `docs/BASELINE_REPORT.md` and stop for approval.
+</first_action>
+</master_prompt>
+````
+
+## ۳. RESUME PROMPT
+
+```text
+Resume WebForge Studio.
+
+Read SPEC.md, PLAN.md, PROGRESS.md, and DECISIONS.md. Run:
+git status
+git log --oneline -n 30
+npm run verify
+
+Establish the current baseline from real test output. Continue from the first incomplete milestone in PLAN.md. Do not redo completed work. Follow the evidence rule: show the command, exit code, and relevant output for every claim. Do not use placeholders, skip tests, weaken assertions, or make unapproved destructive or paid API calls. Stop after completing the current milestone and posting its Milestone Report.
+```
+
+## ۴. BUG-FIX PROMPT TEMPLATE
+
+```text
+Environment:
+- OS:
+- App version / commit:
+- Node version:
+- Active project:
+- Related screen or plugin:
+
+Expected behavior:
+<What should happen, referencing the relevant FR/AC>
+
+Actual behavior:
+<What actually happened>
+
+Exact reproduction steps:
+1.
+2.
+3.
+
+Evidence:
+<Paste exact error text, exit code, relevant log lines, screenshot description, or command output>
+
+Related requirement:
+FR-n / NFR-n / AC-n
+
+Severity:
+blocker | major | minor
+
+Mandatory protocol:
+1. Reproduce the bug exactly.
+2. Write the lowest-level failing regression test that reproduces it.
+3. Run the test and show that it fails for the right reason.
+4. State the root cause.
+5. Apply the minimal complete fix.
+6. Run the full verification suite: npm run verify.
+7. Search the codebase for the same class of bug.
+8. Commit with a fix: Conventional Commit message.
+9. Update PROGRESS.md and DECISIONS.md.
+Existing tests may change only if SPEC.md was wrong, and only with my explicit approval.
+```
+
+## ۵. APPROVAL AND MILESTONE PROMPTS
+
+```text
+Approve plan with changes:
+PLAN.md and SPEC.md را بررسی کردم. این تغییرات را اعمال کن:
+1. <change>
+2. <change>
+سپس فایل‌های affected را به‌روزرسانی کن، Acceptance Criteria های impacted را اصلاح کن، و نسخه‌ی نهایی Phase 1 را دوباره ارائه بده. بعد STOP کن.
+
+Start milestone:
+Milestone M<k> را شروع کن. ابتدا تست‌های failing مربوط به AC های آن را بنویس، اجرا کن و خروجی واقعی را نشان بده. سپس کامل و بدون placeholder پیاده‌سازی کن. در پایان npm run verify را اجرا کن، Milestone Report بده و STOP کن.
+
+Automatic continuation:
+از Milestone M<a> تا Milestone M<b> را پشت‌سرهم اجرا کن. برای هر Milestone کامل گزارش بده، همه gate ها را سبز کن و commit بزن. برای عملیات مخرب، paid API call، یا تغییر SPEC.md توقف کن و تأیید بگیر.
+
+Request spec change:
+این تغییر را در SPEC.md اعمال کن: <exact change>.
+تأثیرش روی FR ها، AC ها، data model، UI، تست‌ها و PLAN.md را لیست کن. بعد نسخه‌ی به‌روز شده‌ی بخش‌های affected را کامل نشان بده و برای تأیید توقف کن.
+```
+
+## ۶. INDEPENDENT REVIEW PROMPT
+
+```text
+You are an independent senior reviewer for WebForge Studio.
+
+Work read-only. Do not modify application code.
+
+Read:
+- SPEC.md
+- PLAN.md
+- PROGRESS.md
+- DECISIONS.md
+- The full current Git diff or the complete repository if no diff exists
+
+Check:
+1. Every FR and NFR has at least one AC.
+2. Every AC has a real verification command and expected observable output.
+3. No placeholders, skipped tests, weakened assertions, empty catches, or unimplemented branches exist.
+4. Tests were not modified to hide failures.
+5. Security requirements are implemented: IPC validation, context isolation, path confinement, private-network protection, secret redaction, plugin permissions, and dependency audit.
+6. Error handling covers timeout, cancellation, offline, invalid input, duplicate requests, concurrent edits, process crash, and disk failure.
+7. TypeScript strict mode, lint, formatting, tests, build, and placeholder gate are consistent.
+8. Persian RTL, i18n, accessibility, theme, and mixed-direction content are correctly handled.
+9. Names, paths, ports, commands, IDs, and environment variables are consistent across all files.
+10. Documentation and trackers match the actual repository state.
+
+Write REVIEW.md with findings classified as:
+- blocker
+- major
+- minor
+
+For every finding include: file, line or area, evidence, impact, and exact recommended fix.
+Do not claim anything passed unless you ran the relevant command and include its real output.
+```
+
+## ۷. MINIMAL CONFIG FILE
+
+`CLAUDE.md`
+
+```markdown
+# WebForge Studio
+
+Private Windows desktop app for website extraction, local preview, visual editing, plugin execution, and AI website generation.
+
+## Commands
+- Install: `npm install`
+- Develop: `npm run dev`
+- Verify everything: `npm run verify`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Unit tests: `npm run test:unit`
+- Integration tests: `npm run test:integration`
+- E2E tests: `npm run test:e2e`
+- Build: `npm run build`
+- Windows package: `npm run package:win`
+- Placeholder gate: `npm run check:placeholders`
+
+## Hard rules
+- UI is Persian, RTL, dark-gray-first with a light theme option.
+- Stack: Electron + TypeScript + React + Node.js + SQLite.
+- Never commit `.env`, secrets, extracted sites, build output, or user projects.
+- Validate every IPC input with Zod.
+- Renderer has no Node.js, filesystem, child-process, or secret access.
+- Every plugin run needs timeout, cancellation, logs, and explicit permissions.
+- Never use TODO, FIXME, skipped tests, empty catches, or placeholder code.
+- Never weaken or delete tests to make them pass.
+- Never claim success without real command output.
+- Read `SPEC.md`, `PLAN.md`, `PROGRESS.md`, and `DECISIONS.md` before continuing work.
+```
+
+## ۸. USAGE NOTES
+
+- این Prompt Pack را در یک Session جدید به Claude Code بده؛ خودش Phase 0 را شروع می‌کند و اول گزارش محیط می‌دهد.
+- بعد از Phase 0 و Phase 1، حتماً `SPEC.md` و `PLAN.md` را خودت مرور کن؛ اینجا مهم‌ترین نقطه‌ی کنترل توست.
+- برای هر Milestone جداگانه تأیید بده تا Agent وسط کار مسیر را عوض نکند.
+- ابزارهای خودت را وقتی به Phase مربوط به Plugin رسیدی، به‌صورت فایل یا مسیر به Agent بده؛ لازم نیست همه را از اول بفرستی.
+- کلید DeepSeek را در چت نفرست؛ فقط در `.env` یا تنظیمات برنامه واردش کن.
+- اگر Agent ادعای «تمام شد» کرد ولی خروجی دستور و تست واقعی نداد، آن را قبول نکن.
+- برای هر باگ، از Bug-Fix Prompt Template استفاده کن تا ریشه‌یابی و تست Regression اجباری شود.
+- اگر خواستی Agent چند Milestone را پشت‌سرهم بسازد، فقط از Prompt «Automatic continuation» استفاده کن.
+
+## ۹. QUALITY GATE REPORT
+
+- هر FR حداقل یک AC و دستور اجرایی دارد: ✅
+- همه‌ی FR و NFR در Acceptance Traceability Matrix آمده‌اند: ✅
+- Edge case ها، خطاها، timeout، concurrency، offline و disk failure تعریف شده‌اند: ✅
+- UI State Matrix برای صفحات اصلی با متن فارسی دقیق نوشته شده: ✅
+- Data model، Permission Matrix، State Machine و Plugin Manifest سازگارند: ✅
+- جلوگیری از Lazy Coding با الگوهای مشخص و `check-no-placeholders` اعمال شده: ✅
+- Test Integrity و Evidence Rule داخل Master Prompt کامل نوشته شده‌اند: ✅
+- فازها و نقاط STOP مشخص‌اند: ✅
+- State Files و Resume Protocol تعریف شده‌اند: ✅
+- نسخه‌ها و وابستگی‌ها با `[verify in Phase 0]` مشخص شده‌اند: ✅
+- Environment Variable ها فقط با نام آمده‌اند و Secret وجود ندارد: ✅
+- کنترل‌های امنیتی و عملیات مخرب/پولی نیازمند تأیید هستند: ✅
+- نام‌ها، مسیرها، پورت‌ها، ID ها و دستورها سازگارند: ✅
+- واژه‌های مبهم خارج از Ban List حذف شده‌اند: ✅
+- این گزارش یک **Review Pass** بود، نه اجرای واقعی کد یا تست؛ بنابراین هیچ ادعایی درباره‌ی اجرای موفق کد وجود ندارد. ✅
+

@@ -1,0 +1,26 @@
+سازنده پنل ادمین — نسخه کوتاه
+================================
+
+1) نصب روی سایت استخراج‌شده:
+   python kit\init_panel.py "C:\path\to\site"
+
+2) اجرا:
+   cd /d "C:\path\to\site"
+   run-panel.bat
+
+3) باز کن:
+   http://localhost:8080/admin.html
+
+گزینه‌ها:
+   --force                 کپی مجدد فایل‌های پنل (آپدیت)
+   --hero-match <substr>   تعیین دستی تصویر هیرو
+
+فایل‌هایی که به سایت اضافه می‌شود:
+   admin.html · site-editor.js · content.json · pages.json
+   panel-config.json · serve.ps1 · run-panel.bat
+
+برگشت به حالت اول:
+   content.json را خالی کن:  {"version":1,"pages":{}}
+
+جزئیات کامل: README.fa.md
+پرامپت ایجنت:  AGENT_PROMPT.md

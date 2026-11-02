@@ -1,0 +1,216 @@
+# WebForge Studio
+
+استودیوی دسکتاپ محلی برای **استخراج سایت**، **ویرایش بصری**، **ساخت سایت با هوش مصنوعی**، **اجرای ابزارهای شخصی** و **تست جامع سایت** — با رابط فارسی، RTL و تم تیره/روشن.
+
+![داشبورد](docs/screenshots/dashboard-dark.png)
+
+> این برنامه برای یک طراح سایت حرفه‌ای روی ویندوز ساخته شده است. همهٔ پروژه‌ها، لاگ‌ها و تنظیمات محلی می‌مانند؛ هیچ سرویس ابری جز DeepSeek (که فقط با کلید و تأیید خودت صدا زده می‌شود) در مسیر کار نیست.
+
+---
+
+## قابلیت‌ها
+
+| بخش | چه می‌کند |
+|---|---|
+| **استخراج سایت** | HTML، CSS، JS، تصاویر، فونت، ویدیو و `srcset` را با ساختار محلی ذخیره می‌کند؛ مسیرها را بازنویسی می‌کند؛ `mirror/` خام و `clean/` قابل‌اجرا می‌سازد؛ مانیفست و گزارش هشدار می‌دهد. حالت «رندرشده» برای سایت‌های JavaScript‌دار هم دارد. |
+| **ویرایشگر بصری** | پیش‌نمایش محلی + کلیک روی متن/عکس/لینک/استایل؛ ذخیرهٔ جراحی‌شده در فایل HTML با پشتیبان زمان‌دار، Undo/Redo و تاریخچه. |
+| **پنل ادمین** | ابزار «سازنده پنل ادمین» را روی هر سایت استاتیک نصب می‌کند؛ پنل با API سازگار داخلی (`/api/content` و `/api/upload`) روی ویندوز/لینوکس کار می‌کند. |
+| **ساخت با AI** | پلن سایت (برند، پالت، تایپوگرافی، صفحات) → تأیید → تولید قطعی `tokens.css` و پوسته → تولید صفحه‌به‌صفحه با DeepSeek؛ خروجی کامل، بدون CDN و اسکریپت خارجی. |
+| **تستر جامع** | HTML، لینک‌ها، دسترس‌پذیری با axe-core (WCAG 2.2 AA)، SEO، کنسول، پرفورمنس، ریسپانسیو و امنیت پایه؛ گزارش JSON و امتیاز. |
+| **ابزارها (Plugins)** | مانیفست JSON، فرم فارسی خودکار، اجرای Node/Python/EXE/Shell، لاگ زنده، تایم‌اوت، لغو، مجوز شبکه/نوشتن و تاریخچه. |
+| **کشف ابزار** | جستجوی GitHub با ارزیابی مجوز، ستاره، آخرین فعالیت، آرشیو، مسائل باز و ریسک؛ هیچ چیزی خودکار نصب نمی‌شود. |
+| **تنظیمات** | تم دارک/لایت/سیستم، مسیر پروژه‌ها، بازهٔ پورت، محدودیت‌های استخراج، کلید DeepSeek رمزنگاری‌شده، خروجی JSON و عیب‌یابی. |
+
+نماهای بیشتر: [ویرایشگر](docs/screenshots/workspace.png) · [تستر](docs/screenshots/qa.png) · [تم روشن](docs/screenshots/settings-light.png)
+
+---
+
+## شروع سریع
+
+### ویندوز (فایل آمادهٔ اجرا)
+
+1. `release/WebForge Studio-1.0.0-portable.exe` را اجرا کن (بدون نصب).
+2. یا پوشهٔ `release/win-unpacked` را باز کن و `WebForge Studio.exe` را بزن.
+3. در تنظیمات، مسیر پروژه‌ها را بررسی کن.
+4. برای AI، کلید DeepSeek را در **تنظیمات → هوش مصنوعی** وارد کن (رمزنگاری‌شده با DPAPI ویندوز).
+
+> فایل‌ها امضای دیجیتال ندارند؛ ویندوز SmartScreen ممکن است هشدار بدهد. برای توزیع عمومی باید گواهی کد امضا اضافه شود.
+
+### اجرای توسعه
+
+```bash
+npm install
+npm run dev
+```
+
+### ساخت
+
+```bash
+npm run build          # بیلد Electron
+npm run package:win    # ویندوز (nsis + portable)
+npm run package:linux  # لینوکس AppImage/dir
+npm run verify         # typecheck + ۲۲ تست + placeholder gate + build
+```
+
+---
+
+## یک جریان کاری واقعی
+
+1. **استخراج:** آدرس سایت → نام پروژه → «شروع استخراج». نتیجه در `clean/` و مانیفست در ریشهٔ پروژه.
+2. **ویرایش:** «باز کردن در ویرایشگر» → «حالت انتخاب» → کلیک روی متن/عکس → ویرایش → ذخیره.
+3. **پنل ادمین:** صفحهٔ ابزارها → اجرای «سازنده پنل ادمین» → بعد از نصب، در ویرایشگر مسیر `/admin.html` را باز کن.
+4. **تست:** صفحهٔ تستر → «اجرای تست» → گزارش در `reports/qa-report.json`.
+5. **ساخت با AI:** توضیح سایت → ساخت پلن → بررسی پالت و صفحات → تأیید و ساخت.
+
+---
+
+## ساختار پروژه
+
+```text
+webforge-studio/
+├─ src/main/                 # Electron main + سرویس‌ها
+│  ├─ core/                  # DB (node:sqlite)، لاگ، URL guard، path guard
+│  ├─ services/              # extraction, preview, editor, plugins, ai, qa, discovery
+│  └─ ipc.ts                 # قرارداد IPC + اعتبارسنجی Zod
+├─ src/preload/              # contextBridge محدود
+├─ src/renderer/             # React 19 + RTL
+├─ src/shared/               # types, schemas, IPC contract
+├─ resources/kits/           # پنل ادمین (ابزار خودت)
+├─ resources/skills/         # اسکیل‌های قابل‌ویرایش طراحی/استخراج/تست
+├─ tests/                    # unit + integration + e2e
+└─ docs/                     # ممیزی، پژوهش، تصمیم‌ها، تأیید
+```
+
+خروجی هر پروژهٔ استخراج‌شده:
+
+```text
+my-site/
+├─ mirror/                   # نسخهٔ خام
+├─ clean/                    # نسخهٔ قابل‌اجرا/ویرایش
+├─ reports/extraction-report.json
+├─ webforge.manifest.json
+├─ .webforge/backups/…       # پشتیبان هر ویرایش
+└─ content.json              # فقط بعد از نصب پنل ادمین
+```
+
+---
+
+## امنیت
+
+- `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true` و preload محدود.
+- همهٔ ورودی‌های IPC با Zod اعتبارسنجی می‌شوند.
+- SSRF guard: فقط `http/https` عمومی؛ loopback، private، link-local، multicast و IPv6 محلی مسدود؛ هر ریدایرکت دوباره بررسی می‌شود.
+- همهٔ نوشتن‌ها با `assertInside` به ریشهٔ پروژه محدود می‌شوند.
+- کلید DeepSeek با `safeStorage` سیستم رمز می‌شود و هرگز به renderer/لاگ/IPC برنمی‌گردد.
+- لاگ‌ها JSONL با redaction کلید/توکن/کوکی هستند.
+- فایل دانلودشده هرگز اجرا نمی‌شود؛ JavaScript سایت در سندباکس Chromium اجرا می‌شود.
+- پلاگین‌ها با timeout، محیط محدود، لغو و مجوز صریح اجرا می‌شوند. (مسدودسازی شبکه در سطح پروسه best-effort است؛ برای ابزارهای ناشناس از VM/سیستم جدا استفاده کن.)
+
+---
+
+## نوشتن پلاگین
+
+```json
+{
+  "name": "my-tool",
+  "displayName": "ابزار من",
+  "description": "توضیح کوتاه",
+  "version": "1.0.0",
+  "runtime": "node",
+  "command": "index.js",
+  "args": [],
+  "cwd": ".",
+  "inputs": [
+    { "key": "siteUrl", "label": "آدرس سایت", "type": "url", "required": true },
+    { "key": "projectId", "label": "پروژه", "type": "projectPath", "required": true }
+  ],
+  "outputs": [{ "key": "report", "type": "file", "path": "report.json" }],
+  "permissions": { "network": false, "projectWrite": true, "environment": [] },
+  "timeoutSeconds": 300
+}
+```
+
+- فرم فارسی از `inputs` ساخته می‌شود.
+- جای‌گذاری `{{siteUrl}}`، `{{projectPath}}` و `{{cwd}}` در `args` پشتیبانی می‌شود.
+- خروجی‌های اعلام‌شده باید در `cwd` ساخته شوند، وگرنه اجرا `failed` می‌شود.
+
+---
+
+## هوش مصنوعی
+
+- پیش‌فرض: `deepseek-flash` روی `https://api.deepseek.com`.
+- جریان: `SiteSpec` → اعتبارسنجی → `tokens.css` قطعی → پوستهٔ مشترک → بدنهٔ هر صفحه → نوشتن → تست.
+- `thinking` غیرفعال، `temperature` فعال، JSON mode برای پلن و SSE برای صفحات.
+- کلید فقط در main خوانده می‌شود. هیچ درخواستی بدون کلید یا تأیید پلن ارسال نمی‌شود.
+- اسکیل طراحی در `resources/skills/web-design/SKILL.md` قابل ویرایش است و به پرامپت اضافه می‌شود.
+
+---
+
+## تست و شواهد
+
+```text
+npm run verify
+→ typecheck: OK
+→ tests: 22 passed (6 files)
+→ placeholder gate: passed
+→ build: OK
+```
+
+E2E واقعی (Electron + Chromium + Xvfb) در `tests/e2e/app.spec.ts`:
+
+```text
+7 passed
+✓ dashboard/navigation RTL
+✓ extraction of a real local site
+✓ preview + click-to-edit + persistence + backup
+✓ admin panel plugin install
+✓ external Node plugin run + logs + output contract
+✓ QA report generation
+✓ theme toggle
+```
+
+جزئیات و خروجی واقعی: `docs/VERIFICATION_REPORT.md` و `docs/PROGRESS.md`.
+
+---
+
+## محدودیت‌های شناخته‌شده
+
+- این نسخه روی **لینوکس** ساخته و تست شده؛ بستهٔ ویندوز (portable) ساخته شده اما در این محیط ویندوز/واین اجرا نشده است.
+- نصب‌کنندهٔ NSIS در این محیط ساخته نشد (نبود Wine)؛ نسخهٔ portable و پوشهٔ win-unpacked آماده است.
+- پیش‌نمایش پروژه‌های Node/Next با اسکریپت dev اجرا نمی‌شود؛ فعلاً فقط سایت استاتیک/`clean` سرو می‌شود.
+- ادامهٔ خودکار تولید AI (Resume) پیاده نشده؛ فایل‌های نیمه‌کاره حفظ می‌شوند و اجرای دوباره پروژهٔ جدید می‌سازد.
+- ویرایش بصری روی HTML استاتیک است؛ پروژه‌های React/JSX نیاز به ابزار جدا دارند.
+- پلاگین‌های ناشناس در همان کاربر اجرا می‌شوند؛ سندباکس OS-level ندارند.
+- دانلود پوشه‌های Gofile ابزار سوم/چهارم در این محیط با خطای ریت‌لیمیت/بلاک IP متوقف شد؛ جزئیات در `docs/TOOL_AUDIT.md`.
+- امضای کد و به‌روزرسانی خودکار ندارد.
+
+---
+
+## عیب‌یابی
+
+| مشکل | راه‌حل |
+|---|---|
+| پنل باز نمی‌شود | پیش‌نمایش را از ویرایشگر اجرا کن؛ `admin.html` فقط از طریق سرور محلی کار می‌کند. |
+| «ذخیره نشد» در پنل | سرور پیش‌نمایش باید فعال باشد؛ `content.json` در ریشهٔ سایت ساخته می‌شود. |
+| استخراج ناقص | سقف فایل/حجم/زمان را بالا ببر یا حالت رندرشده را فعال کن؛ گزارش هشدارها را ببین. |
+| AI خطای کلید می‌دهد | کلید را در تنظیمات دوباره وارد و «تست اتصال» را بزن. |
+| پورت اشغال است | بازهٔ پورت را در تنظیمات عوض کن؛ برنامه خودش پورت آزاد بعدی را می‌گیرد. |
+| فونت فارسی درست نیست | `Vazirmatn.woff2` در بیلد موجود است؛ اگر فایل حذف شده، دوباره از npm/ریپو بگیر. |
+
+لاگ‌ها: `تنظیمات → داده و عیب‌یابی → لاگ‌ها`.
+
+---
+
+## مستندات
+
+- [مشخصات و پوشش نیازمندی‌ها](SPEC.md)
+- [نقشهٔ اجرا و وضعیت](PLAN.md) · [پیشرفت](PROGRESS.md)
+- [تصمیم‌ها و انحراف‌های فنی](DECISIONS.md)
+- [ممیزی چهار ابزار ورودی](docs/TOOL_AUDIT.md)
+- [پژوهش GitHub و ابزارهای مکمل](docs/RESEARCH_GITHUB.md)
+- [گزارش تأیید واقعی](docs/VERIFICATION_REPORT.md)
+- [گزارش محیط](docs/BASELINE_REPORT.md)
+
+## مجوز
+
+کد این پروژه خصوصی است (`UNLICENSED`). بستهٔ پنل ادمین از ابزار خودت آمده و مجوز مستقل خودش را دارد. وابستگی‌ها با مجوزهای MIT/Apache/BSD/MPL استفاده شده‌اند؛ فهرست در `docs/DEPENDENCIES.md`.

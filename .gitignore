@@ -1,0 +1,15 @@
+node_modules/
+out/
+release/
+dist/
+test-results/
+playwright-report/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+WebForge Projects/
+
+*.tsbuildinfo

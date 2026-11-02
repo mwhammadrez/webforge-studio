@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>پنل مدیریت سایت</title>
+<style>
+  :root { --gold:#f5be09; --ink:#0b0b10; --panel:#12121a; --line:#2a2a35; --text:#eee; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:13px/1.7 system-ui, Tahoma, sans-serif; background:var(--ink); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { font-size:14px; margin:0; color:var(--gold); font-weight:600; }
+  header .sp { flex:1; }
+  select, input[type=text], textarea { background:#1a1a24; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:inherit; width:100%; }
+  textarea { resize:vertical; min-height:56px; }
+  button { background:#1f1f2b; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 12px; font:inherit; cursor:pointer; }
+  button:hover { border-color:var(--gold); color:var(--gold); }
+  button.primary { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
+  button.primary:hover { filter:brightness(1.08); color:#111; }
+  main { flex:1; display:flex; min-height:0; }
+  iframe { flex:1; border:0; background:#000; }
+  aside { width:390px; border-inline-start:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; min-height:0; order:-1; }
+  .tabs { display:flex; border-bottom:1px solid var(--line); }
+  .tabs button { flex:1; border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; padding:10px 0; }
+  .tabs button.on { color:var(--gold); border-bottom-color:var(--gold); }
+  .pane { padding:14px; overflow:auto; flex:1; display:none; }
+  .pane.on { display:block; }
+  label { display:block; margin:10px 0 4px; color:#9a9aa8; font-size:12px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .row > * { flex:1; }
+  .muted { color:#7c7c8c; font-size:12px; }
+  .box { border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:12px; background:#16161f; }
+  .pill { font-size:11px; padding:1px 7px; border-radius:99px; border:1px solid var(--line); color:#9a9aa8; }
+  .thumb { max-width:100%; border-radius:6px; border:1px solid var(--line); margin-top:6px; display:block; }
+  .switch { display:flex; align-items:center; justify-content:space-between; padding:6px 0; }
+  #toast { position:fixed; inset-inline-start:14px; bottom:14px; background:#0f2f1c; color:#7ee2a8; border:1px solid #2f6b4a;
+    padding:8px 14px; border-radius:8px; opacity:0; transform:translateY(8px); transition:.2s; pointer-events:none; }
+  #toast.on { opacity:1; transform:none; }
+  #toast.err { background:#3a1414; color:#ff9a9a; border-color:#6b2f2f; }
+  code { background:#0e0e14; padding:1px 5px; border-radius:4px; font-size:11px; color:#c9c9d4; word-break:break-all; }
+  .list { border:1px solid var(--line); border-radius:8px; overflow:auto; max-height:320px; background:#101018; }
+  .item { display:flex; gap:6px; align-items:center; padding:5px 6px; border-bottom:1px solid #1d1d27; }
+  .item:last-child { border-bottom:0; }
+  .item img { width:36px; height:36px; object-fit:cover; border-radius:4px; background:#000; flex:0 0 36px; }
+  .item input { font-size:12px; padding:4px 6px; flex:1 1 auto; width:auto; min-width:0; }
+  .item .tag { font-size:10px; color:#8a8a98; flex:0 0 auto; }
+  .item button { padding:3px 7px; font-size:11px; }
+  .more { width:100%; margin:6px 0 14px; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>پنل مدیریت سایت</h1>
+  <select id="page" style="width:220px"></select>
+  <span class="sp"></span>
+  <span class="muted" id="status">آماده</span>
+  <button id="reload">بارگذاری مجدد</button>
+  <button class="primary" id="save">ذخیره روی دیسک</button>
+</header>
+
+<main>
+  <iframe id="frame" src="/?edit=1"></iframe>
+  <aside>
+    <div class="tabs">
+      <button data-tab="el" class="on">عنصر انتخابی</button>
+      <button data-tab="all">همه محتوا</button>
+      <button data-tab="hero">هیرو</button>
+      <button data-tab="help">راهنما</button>
+    </div>
+
+    <div class="pane on" id="pane-el">
+      <p class="muted" id="elHint">در پیش‌نمایش، روی هر عنصری کلیک کن تا اینجا بیاید.</p>
+      <div id="elForm" hidden>
+        <div class="box">
+          <div><span class="pill" id="elTag">-</span> <code id="elPath"></code></div>
+        </div>
+        <label>متن</label>
+        <textarea id="fText"></textarea>
+        <label>تصویر (آدرس یا آپلود)</label>
+        <input type="text" id="fSrc" placeholder="assets/uploads/...">
+        <div class="row" style="margin-top:6px">
+          <button id="fUpload">آپلود عکس</button>
+          <button id="fClearImg">خالی کن</button>
+        </div>
+        <input type="file" id="fFile" accept="image/*" hidden>
+        <img id="fPreview" class="thumb" hidden>
+
+        <label>لینک (href)</label>
+        <input type="text" id="fHref" placeholder="https://… یا /page/">
+
+        <label>استایل</label>
+        <div class="row"><input type="text" id="fSize" placeholder="font-size: 24px"></div>
+        <div class="row" style="margin-top:6px"><input type="text" id="fColor" placeholder="color: #fff"></div>
+        <div class="row" style="margin-top:6px"><input type="text" id="fBg" placeholder="background: #000"></div>
+        <div class="row" style="margin-top:6px"><input type="text" id="fRadius" placeholder="border-radius: 20px"></div>
+
+        <label class="switch">مخفی شود <input type="checkbox" id="fHidden"></label>
+
+        <div class="row" style="margin-top:10px">
+          <button class="primary" id="fApply">اعمال</button>
+          <button id="fReset">حذف تغییر این عنصر</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-all">
+      <div class="row" style="margin-bottom:8px">
+        <button id="scanBtn">بازخوانی صفحه</button>
+        <input id="filter" type="text" placeholder="جستجو در متن یا نام عکس…">
+      </div>
+      <p class="muted" id="invStat">در حال خواندن صفحه…</p>
+
+      <label>تصاویر (<span id="imgCount">۰</span>)</label>
+      <div class="list" id="imgList"></div>
+      <button class="more" id="imgMore">نمایش بیشتر</button>
+
+      <label>متن‌ها (<span id="txtCount">۰</span>)</label>
+      <div class="list" id="txtList"></div>
+      <button class="more" id="txtMore">نمایش بیشتر</button>
+
+      <label>ویدیوها (<span id="vidCount">۰</span>)</label>
+      <div class="list" id="vidList"></div>
+
+      <input type="file" id="listFile" accept="image/*" hidden>
+      <input type="file" id="vidFile" accept="video/*" hidden>
+      <p class="muted">هر تغییر همان لحظه در پیش‌نمایش اعمال می‌شود؛ برای دائمی‌شدن «ذخیره روی دیسک» را بزن.</p>
+    </div>
+
+    <div class="pane" id="pane-hero">
+      <div class="box">
+        <label>تصویر داشبورد هیرو (جای عکس ترید)</label>
+        <div class="row">
+          <button id="hUpload">آپلود تصویر</button>
+          <button id="hClear">برگرد به عکس اصلی</button>
+        </div>
+        <input type="file" id="hFile" accept="image/*" hidden>
+        <img id="hPreview" class="thumb" hidden>
+      </div>
+
+      <div class="box">
+        <div id="extras"></div>
+        <label>نسبت تصویر هیرو</label>
+        <select id="hRatio">
+          <option value="">خودکار (نسبت اصلی)</option>
+          <option value="1.36">۱.۳۶ — مربع‌تر</option>
+          <option value="1.9">۱.۹ — عریض</option>
+          <option value="2.4">۲.۴ — سینمایی</option>
+        </select>
+      </div>
+      <p class="muted">این تنظیمات فقط روی صفحه‌ای که انتخاب کرده‌ای اعمال می‌شود.</p>
+    </div>
+
+    <div class="pane" id="pane-help">
+      <p>۱. از بالا صفحه را انتخاب کن.</p>
+      <p>۲. در پیش‌نمایش روی عنصر کلیک کن؛ مشخصاتش سمت راست می‌آید.</p>
+      <p>۳. متن / عکس / استایل را عوض کن و «اعمال» بزن.</p>
+      <p>۴. در پایان «ذخیره روی دیسک» را بزن؛ تغییرات در <code>content.json</code> نوشته می‌شود و برای همه دائمی است.</p>
+      <p class="muted">بدون ذخیره، تغییرات فقط در همین پیش‌نمایش است.</p>
+    </div>
+  </aside>
+</main>
+
+<div id="toast"></div>
+
+<script>
+let pages = [{ path: '/', src: '/' }];
+const srcByPath = {};
+const $ = id => document.getElementById(id);
+const frame = $('frame');
+let state = { version: 1, pages: {} };
+let current = '/';
+let picked = null;
+
+const toast = (msg, err) => {
+  const t = $('toast'); t.textContent = msg; t.className = 'on' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = '', 2600);
+};
+const setStatus = s => $('status').textContent = s;
+const pageState = () => (state.pages[current] = state.pages[current] || {});
+const overrides = () => (pageState().overrides = pageState().overrides || {});
+const hero = () => (pageState().hero = pageState().hero || {});
+
+/* ---------- boot ---------- */
+function buildPages() {
+  $('page').textContent = '';
+  pages.forEach(p => {
+    srcByPath[p.path] = p.src;
+    const o = document.createElement('option');
+    o.value = p.path;
+    o.textContent = p.path === '/' ? 'صفحه اصلی' : p.path;
+    $('page').appendChild(o);
+  });
+  $('page').value = current;
+}
+buildPages();
+fetch('/pages.json', { cache: 'no-store' })
+  .then(r => r.json())
+  .then(j => { if (j && j.pages && j.pages.length) { pages = j.pages; buildPages(); } })
+  .catch(() => {});
+
+fetch('/api/content', { cache: 'no-store' }).then(r => r.json()).then(j => { state = j && j.pages ? j : state; })
+  .catch(() => {}).finally(() => { syncHeroUI(); });
+
+$('page').onchange = () => {
+  current = $('page').value;
+  frame.src = (srcByPath[current] || current) + '?edit=1';
+  syncHeroUI();
+  $('elForm').hidden = true;
+  $('elHint').hidden = false;
+};
+
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + b.dataset.tab));
+});
+
+/* ---------- page -> admin ---------- */
+window.addEventListener('message', ev => {
+  const m = ev.data || {};
+  if (m.source !== 'goldify-page') return;
+  if (m.type === 'ready') { setStatus('متصل'); return; }
+  if (m.type !== 'selected') return;
+
+  picked = m;
+  $('elHint').hidden = true;
+  $('elForm').hidden = false;
+  $('elTag').textContent = m.tag;
+  $('elPath').textContent = m.path;
+  $('fText').value = m.text || '';
+  $('fText').disabled = !m.textEditable;
+  $('fSrc').value = m.src ? m.src.replace(location.origin + '/', '') : '';
+  $('fHref').value = m.href || '';
+  $('fSize').value = m.style.fontSize && m.style.fontSize !== '16px' ? m.style.fontSize : '';
+  $('fColor').value = m.style.color || '';
+  $('fBg').value = m.style.background && m.style.background !== 'rgba(0, 0, 0, 0)' ? m.style.background : '';
+  $('fRadius').value = m.style.borderRadius && m.style.borderRadius !== '0px' ? m.style.borderRadius : '';
+  $('fHidden').checked = !!m.hidden;
+  if (m.src) { $('fPreview').src = m.src; $('fPreview').hidden = false; } else { $('fPreview').hidden = true; }
+});
+
+/* ---------- admin -> page ---------- */
+const send = (type, payload) => frame.contentWindow.postMessage({ source: 'goldify-admin', type, ...payload }, '*');
+
+const buildProps = () => {
+  const p = {};
+  if (!$('fText').disabled && $('fText').value !== (picked.text || '')) p.text = $('fText').value;
+  const src = $('fSrc').value.trim();
+  if (src) p.src = src.startsWith('http') || src.startsWith('/') ? src : '/' + src;
+  if ($('fHref').value.trim()) p.href = $('fHref').value.trim();
+  if ($('fHidden').checked) p.hidden = true; else p.hidden = false;
+  const st = {};
+  if ($('fSize').value.trim()) st.fontSize = $('fSize').value.trim();
+  if ($('fColor').value.trim()) st.color = $('fColor').value.trim();
+  if ($('fBg').value.trim()) st.backgroundColor = $('fBg').value.trim();
+  if ($('fRadius').value.trim()) st.borderRadius = $('fRadius').value.trim();
+  if (Object.keys(st).length) p.style = st;
+  return p;
+};
+
+$('fApply').onclick = () => {
+  if (!picked) return;
+  const props = buildProps();
+  const anchor = {
+    tag: picked.tag,
+    label: (picked.text || '').trim().slice(0, 80) || (picked.src || '').split('/').pop(),
+  };
+  if (props.text !== undefined) {
+    send('set', { path: picked.textPath, props: { text: props.text } });
+    const prev = overrides()[picked.textPath] || {};
+    overrides()[picked.textPath] = { ...prev, text: props.text, anchor: prev.anchor || anchor };
+  }
+  const rest = { ...props }; delete rest.text;
+  if (Object.keys(rest).length) {
+    send('set', { path: picked.path, props: rest });
+    const prev = overrides()[picked.path] || {};
+    overrides()[picked.path] = { ...prev, ...rest, anchor: prev.anchor || anchor };
+  }
+  toast('در پیش‌نمایش اعمال شد');
+};
+
+$('fReset').onclick = () => { if (picked) { delete overrides()[picked.path]; delete overrides()[picked.textPath]; } toast('از حافظه پاک شد (برای اثرگذاری، ذخیره کن)'); };
+
+$('fUpload').onclick = () => $('fFile').click();
+$('fFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = await fetch('/api/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+  const j = await r.json();
+  if (j.ok) { $('fSrc').value = j.path; $('fPreview').src = j.path; $('fPreview').hidden = false; toast('آپلود شد — «اعمال» را بزن'); }
+  else toast('آپلود نشد', true);
+};
+$('fClearImg').onclick = () => { $('fSrc').value = ''; $('fPreview').hidden = true; };
+
+/* ---------- hero ---------- */
+let siteCfg = {};
+const syncHeroUI = () => {
+  const h = (state.pages[current] || {}).hero || {};
+  const box = $('extras');
+  box.textContent = '';
+  (siteCfg.extras || []).forEach(ex => {
+    const lab = document.createElement('label');
+    lab.className = 'switch';
+    lab.textContent = ex.name;
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !(h.extras && h.extras[ex.name] === false);
+    cb.onchange = () => {
+      const hero = (state.pages[current] = state.pages[current] || {}).hero = state.pages[current].hero || {};
+      hero.extras = hero.extras || {};
+      hero.extras[ex.name] = cb.checked;
+      send('hero', { hero: { extras: { [ex.name]: cb.checked } } });
+      toast(cb.checked ? 'نمایش داده شد' : 'مخفی شد');
+    };
+    lab.appendChild(cb);
+    box.appendChild(lab);
+  });
+  $('hRatio').value = h.ratio || '';
+  if (h.image) { $('hPreview').src = h.image; $('hPreview').hidden = false; } else { $('hPreview').hidden = true; }
+};
+
+$('hUpload').onclick = () => $('hFile').click();
+$('hFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = await fetch('/api/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+  const j = await r.json();
+  if (!j.ok) return toast('آپلود نشد', true);
+  hero().image = j.path;
+  send('hero', { hero: { image: j.path } });
+  syncHeroUI(); toast('عکس هیرو عوض شد');
+};
+$('hClear').onclick = () => { delete hero().image; send('reload'); toast('به عکس اصلی برگشت (بعد از رفرش)'); };
+$('hRatio').onchange = e => { hero().ratio = e.target.value; send('hero', { hero: { ratio: e.target.value } }); toast('نسبت تصویر اعمال شد'); };
+
+/* ---------- all content (images + texts) ---------- */
+const inv = { images: [], texts: [], videos: [] };
+const lim = { images: 40, texts: 60 };
+let pendingImgPath = null;
+let pendingVidPath = null;
+let curFilter = '';
+
+const norm = s => (s || '').toLowerCase();
+const match = s => !curFilter || norm(s).includes(curFilter);
+
+function setOverride(path, props, anchor) {
+  const prev = overrides()[path] || {};
+  overrides()[path] = { ...prev, ...props, anchor: prev.anchor || anchor };
+  send('set', { path, props });
+}
+
+function eyeBtn(path, hidden, after) {
+  const b = document.createElement('button');
+  b.textContent = hidden ? '◉' : '✕';
+  b.title = hidden ? 'نمایش' : 'مخفی کردن';
+  b.onclick = () => {
+    setOverride(path, { hidden: !hidden }, { tag: 'any', label: '' });
+    if (after) after();
+    toast(hidden ? 'نمایش داده شد' : 'مخفی شد');
+  };
+  return b;
+}
+
+function renderVideos() {
+  const list = $('vidList');
+  list.textContent = '';
+  const items = inv.videos.filter(v => match(decodeURIComponent((v.src || '').split('/').pop())));
+  $('vidCount').textContent = items.length.toLocaleString('fa-IR');
+  for (const it of items) {
+    const row = document.createElement('div'); row.className = 'item';
+    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = it.w + '×' + it.h;
+    const name = document.createElement('span'); name.className = 'tag';
+    name.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left';
+    name.textContent = decodeURIComponent((it.src || '').split('/').pop()).slice(0, 22);
+    const btn = document.createElement('button'); btn.textContent = 'عوض';
+    btn.onclick = () => { pendingVidPath = it.path; $('vidFile').click(); };
+    const hl = document.createElement('button'); hl.textContent = '↗';
+    hl.onclick = () => send('highlight', { path: it.path });
+    row.append(tag, name, btn, hl);
+    list.appendChild(row);
+  }
+}
+
+function renderImages() {
+  const list = $('imgList');
+  list.textContent = '';
+  const items = inv.images.filter(i => match(decodeURIComponent(i.src.split('/').pop())));
+  $('imgCount').textContent = items.length.toLocaleString('fa-IR');
+  for (const it of items.slice(0, lim.images)) {
+    const row = document.createElement('div'); row.className = 'item';
+    const img = document.createElement('img'); img.src = it.src; img.loading = 'lazy'; img.alt = '';
+    const size = document.createElement('span'); size.className = 'tag'; size.textContent = it.w + '×' + it.h;
+    const name = document.createElement('span'); name.className = 'tag';
+    name.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left';
+    name.textContent = decodeURIComponent(it.src.split('/').pop()).slice(0, 24);
+    const btn = document.createElement('button'); btn.textContent = 'عوض';
+    btn.onclick = () => { pendingImgPath = it.path; $('listFile').click(); };
+    const hl = document.createElement('button'); hl.textContent = '↗'; hl.title = 'نمایش در صفحه';
+    hl.onclick = () => send('highlight', { path: it.path });
+    row.append(img, size, name, btn, hl, eyeBtn(it.path, false, renderImages));
+    list.appendChild(row);
+  }
+}
+
+function renderTexts() {
+  const list = $('txtList');
+  list.textContent = '';
+  const items = inv.texts.filter(i => match(i.text));
+  $('txtCount').textContent = items.length.toLocaleString('fa-IR');
+  for (const it of items.slice(0, lim.texts)) {
+    const row = document.createElement('div'); row.className = 'item';
+    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = it.tag;
+    const input = document.createElement('input'); input.type = 'text'; input.value = it.text; input.setAttribute('dir', 'auto');
+    let timer;
+    input.oninput = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        setOverride(it.path, { text: input.value }, { tag: it.tag, label: it.text });
+        toast('متن اعمال شد (برای ماندن، ذخیره کن)');
+      }, 600);
+    };
+    const hl = document.createElement('button'); hl.textContent = '↗'; hl.title = 'نمایش در صفحه';
+    hl.onclick = () => send('highlight', { path: it.path });
+    row.append(tag, input, hl, eyeBtn(it.path, false, renderTexts));
+    list.appendChild(row);
+  }
+}
+
+window.addEventListener('message', ev => {
+  const m = ev.data || {};
+  if (m.source !== 'goldify-page' || m.type !== 'inventory') return;
+  inv.images = m.images || [];
+  inv.texts = m.texts || [];
+  inv.videos = m.videos || [];
+  if (m.config && Object.keys(m.config).length) { siteCfg = m.config; syncHeroUI(); }
+  $('invStat').textContent = `صفحه ${m.page} — ${inv.images.length.toLocaleString('fa-IR')} تصویر، ${inv.texts.length.toLocaleString('fa-IR')} متن، ${inv.videos.length.toLocaleString('fa-IR')} ویدیو`;
+  renderImages();
+  renderTexts();
+  renderVideos();
+});
+
+$('scanBtn').onclick = () => { $('invStat').textContent = 'در حال خواندن…'; send('scan', {}); };
+$('filter').oninput = e => { curFilter = norm(e.target.value.trim()); lim.images = 40; lim.texts = 60; renderImages(); renderTexts(); };
+$('imgMore').onclick = () => { lim.images += 40; renderImages(); };
+$('txtMore').onclick = () => { lim.texts += 60; renderTexts(); };
+
+$('listFile').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f || !pendingImgPath) return;
+  const r = await fetch('/api/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+  const j = await r.json();
+  if (!j.ok) return toast('آپلود نشد', true);
+  const it = inv.images.find(i => i.path === pendingImgPath);
+  const anchor = { tag: 'img', label: it ? decodeURIComponent(it.src.split('/').pop()) : '' };
+  setOverride(pendingImgPath, { src: '/' + j.path }, anchor);
+  if (it) it.src = '/' + j.path;
+  renderImages();
+  toast('عکس عوض شد (برای ماندن، ذخیره کن)');
+  pendingImgPath = null;
+  e.target.value = '';
+};
+
+$('vidFile').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f || !pendingVidPath) return;
+  const r = await fetch('/api/upload?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+  const j = await r.json();
+  if (!j.ok) return toast('آپلود نشد (حجم یا فرمت)', true);
+  setOverride(pendingVidPath, { video: '/' + j.path }, { tag: 'video', label: f.name });
+  toast('ویدیو عوض شد (برای ماندن، ذخیره کن)');
+  pendingVidPath = null;
+  e.target.value = '';
+};
+
+/* ---------- save ---------- */
+$('save').onclick = async () => {
+  setStatus('در حال ذخیره…');
+  const body = JSON.stringify(state, null, 2).length > 7 ? state : state; // keep as object
+  try {
+    const r = await fetch('/api/content', { method: 'POST', body: JSON.stringify(state) });
+    const j = await r.json();
+    if (!j.ok) throw new Error('bad response');
+    setStatus('ذخیره شد ✓ ' + new Date().toLocaleTimeString('fa-IR'));
+    toast('روی content.json ذخیره شد');
+    send('reload');
+  } catch (e) {
+    setStatus('خطا در ذخیره');
+    toast('ذخیره نشد — سرور اجراست؟', true);
+  }
+};
+$('reload').onclick = () => { frame.src = current + '?edit=1'; toast('پیش‌نمایش رفرش شد'); };
+</script>
+</body>
+</html>
