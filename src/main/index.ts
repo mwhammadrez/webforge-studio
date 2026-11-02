@@ -12,6 +12,7 @@ import { EditorService } from './services/editor'
 import { PluginService } from './services/plugins'
 import { AiService } from './services/ai'
 import { DiscoveryService } from './services/discovery'
+import { IntegrationService } from './services/integration'
 import { QaService } from './services/qa'
 import { registerIpc, applyTheme, type MainContext } from './ipc'
 import { AppError } from './core/errors'
@@ -82,6 +83,10 @@ async function bootstrap(): Promise<void> {
   const ai = new AiService(settings, projects, logger)
   const discovery = new DiscoveryService(logger)
   const qa = new QaService(preview, projects, logger)
+  const integration = new IntegrationService(discovery, ai, plugins, settings, logger, () => ({
+    tempDir: app.getPath('temp'),
+    pluginsDir: settings.get().pluginDir
+  }))
 
   plugins.registerBuiltin('site-qa', async (builtin) => {
     if (!builtin.project) throw new AppError('PROJECT_REQUIRED', 'برای اجرای تست، یک پروژه انتخاب کن.')
@@ -111,6 +116,7 @@ async function bootstrap(): Promise<void> {
     plugins,
     ai,
     discovery,
+    integration,
     qa,
     getWindow: () => mainWindow
   }

@@ -43,6 +43,7 @@ export type IconName =
   | 'panel'
   | 'zoom'
   | 'menu'
+  | 'info'
 
 const paths: Record<IconName, React.ReactNode> = {
   home: <><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M9 22V12h6v10" /></>,
@@ -86,7 +87,8 @@ const paths: Record<IconName, React.ReactNode> = {
   activity: <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
   panel: <><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /></>,
   zoom: <><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M11 8v6" /><path d="M8 11h6" /></>,
-  menu: <><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /></>
+  menu: <><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /></>,
+  info: <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></>
 }
 
 export function Icon({ name, size = 18, ...props }: { name: IconName; size?: number } & SVGProps<SVGSVGElement>): React.JSX.Element {

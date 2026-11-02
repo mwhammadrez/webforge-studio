@@ -27,7 +27,7 @@
 | `npm install` | ✅ ۳۸۸+ پکیج |
 | `npm run typecheck` | ✅ بدون خطا |
 | `npm run build` | ✅ main/preload/renderer |
-| `npm run verify` | ✅ (22 تست + gate + build) |
+| `npm run verify` | ✅ (25 تست + gate + build) |
 | Playwright `_electron` | ✅ ۶ سناریو |
 | electron-builder Linux dir | ✅ |
 | electron-builder Windows portable | ✅ (NSIS stub + app-64.7z) |

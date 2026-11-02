@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { GithubRepoDetail, GithubRepoSummary } from '@shared/types'
+import type { GithubRepoDetail, GithubRepoSummary, IntegrationReport, Plugin } from '@shared/types'
 import { Button, Empty, Modal, SectionTitle } from '../components/ui'
+import { useApp } from '../store'
 import { Icon } from '../components/Icon'
 import { errorMessage, unwrap } from '../lib/api'
 import { fa, number, shortDate } from '../lib/format'
@@ -26,6 +27,13 @@ export default function Discover(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<GithubRepoDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [report, setReport] = useState<IntegrationReport | null>(null)
+  const [inspecting, setInspecting] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [installed, setInstalled] = useState<Plugin | null>(null)
+  const [force, setForce] = useState(false)
+  const navigate = useApp((state) => state.navigate)
+  const toast = useApp((state) => state.toast)
 
   const search = async (nextPage = 1): Promise<void> => {
     if (!query.trim()) return
@@ -40,6 +48,36 @@ export default function Discover(): React.JSX.Element {
       setError(errorMessage(err))
     } finally {
       setSearching(false)
+    }
+  }
+
+  const inspectRepo = async (): Promise<void> => {
+    if (!selected) return
+    setInspecting(true)
+    setInstalled(null)
+    setForce(false)
+    try {
+      const result = await unwrap(window.webforge.integration.inspect(selected.fullName))
+      setReport(result)
+      setSelected(null)
+    } catch (error) {
+      toast('error', 'بازرسی ریپو ناموفق بود', errorMessage(error))
+    } finally {
+      setInspecting(false)
+    }
+  }
+
+  const installRepo = async (): Promise<void> => {
+    if (!report) return
+    setInstalling(true)
+    try {
+      const result = await unwrap(window.webforge.integration.install(report.fullName, force))
+      setInstalled(result.plugin)
+      toast('success', 'ابزار به فضای کاری اضافه شد', result.plugin.displayName)
+    } catch (error) {
+      toast('error', 'افزودن ابزار ناموفق بود', errorMessage(error))
+    } finally {
+      setInstalling(false)
     }
   }
 
@@ -147,7 +185,8 @@ export default function Discover(): React.JSX.Element {
           footer={
             <>
               <Button variant="ghost" onClick={() => setSelected(null)}>بستن</Button>
-              <Button icon="external" onClick={() => void window.webforge.app.openExternal(selected.htmlUrl)}>باز کردن در GitHub</Button>
+              <Button icon="external" onClick={() => void window.webforge.app.openExternal(selected.htmlUrl)}>GitHub</Button>
+              <Button variant="primary" icon="layers" onClick={() => void inspectRepo()} loading={inspecting}>بررسی و افزودن</Button>
             </>
           }
         >
@@ -181,6 +220,113 @@ export default function Discover(): React.JSX.Element {
             <div className="alert">
               <Icon name="shield" size={15} />
               <span>ادغام هر مخزن نیازمند بررسی دستی و تأیید است. این صفحه فقط ارزیابی می‌کند و چیزی نصب نمی‌کند.</span>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
+
+      {report ? (
+        <Modal
+          title={`بازرسی ${report.fullName}`}
+          onClose={() => { setReport(null); setInstalled(null) }}
+          width={860}
+          footer={
+            installed ? (
+              <>
+                <Button variant="ghost" onClick={() => { setReport(null); setInstalled(null) }}>بستن</Button>
+                <Button variant="primary" icon="layers" onClick={() => navigate('plugins')}>رفتن به ابزارها</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => setReport(null)}>انصراف</Button>
+                <Button variant="primary" icon="plus" onClick={() => void installRepo()} loading={installing} disabled={!report.installable || (report.riskLevel === 'high' && !force)}>
+                  افزودن به فضای کاری
+                </Button>
+              </>
+            )
+          }
+        >
+          <div className="stack">
+            <div className="row row--wrap" style={{ gap: 6 }}>
+              <span className={`badge ${report.riskLevel === 'high' ? 'badge--danger' : report.riskLevel === 'medium' ? 'badge--warn' : 'badge--success'}`}>
+                ریسک {report.riskLevel === 'high' ? 'بالا' : report.riskLevel === 'medium' ? 'متوسط' : 'کم'}
+              </span>
+              <span className="badge">{report.runtime}</span>
+              <span className="badge">{report.license ?? 'بدون مجوز'}</span>
+              <span className="badge">{report.fileCount} فایل</span>
+              <span className="badge">{report.ai?.used ? 'بررسی AI انجام شد' : 'بررسی AI خاموش'}</span>
+            </div>
+
+            {report.installable ? (
+              <div className={`alert ${report.riskLevel === 'high' ? 'alert--warn' : 'alert--success'}`}>
+                <Icon name={report.riskLevel === 'high' ? 'alert' : 'check'} size={16} />
+                <span>{report.reason}</span>
+              </div>
+            ) : (
+              <div className="alert alert--warn"><Icon name="alert" size={16} /><span>{report.reason}</span></div>
+            )}
+
+            {report.ai?.summary ? (
+              <div className="alert alert--info"><Icon name="cpu" size={16} /><span>{report.ai.summary}</span></div>
+            ) : null}
+
+            {report.ai?.capabilities?.length ? (
+              <div className="row row--wrap" style={{ gap: 5 }}>
+                {report.ai.capabilities.map((capability) => <span key={capability} className="badge">{capability}</span>)}
+              </div>
+            ) : null}
+
+            <div>
+              <SectionTitle title="یافته‌های بازرسی" hint={`${report.findings.length} مورد`} />
+              {report.findings.length === 0 ? (
+                <div className="alert alert--success"><Icon name="check" size={15} /><span>یافتهٔ مهمی دیده نشد.</span></div>
+              ) : (
+                <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', maxHeight: 260, overflowY: 'auto' }}>
+                  {report.findings.map((finding, index) => (
+                    <div key={index} className="finding">
+                      <span className={`finding__sev ${finding.severity === 'critical' ? 'finding__sev--critical' : finding.severity === 'warning' ? 'finding__sev--major' : ''}`} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12 }}>{finding.message}</div>
+                        {finding.file ? <div className="path" style={{ marginTop: 2 }}>{finding.file}</div> : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {report.proposedManifest ? (
+              <div>
+                <SectionTitle title="مانیفست پیشنهادی" hint="قبل از افزودن بررسی کن" />
+                <div style={{ background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: 10, padding: 12, fontSize: 11.5 }}>
+                  <div className="row row--between"><span className="muted">نام</span><span className="code">{report.proposedManifest.name}</span></div>
+                  <div className="row row--between"><span className="muted">Runtime</span><span className="code">{report.proposedManifest.runtime}</span></div>
+                  <div className="row row--between"><span className="muted">دسترسی شبکه</span><span>{report.proposedManifest.permissions.network ? 'بله' : 'خیر'}</span></div>
+                  <div className="row row--between"><span className="muted">نوشتن در پروژه</span><span>{report.proposedManifest.permissions.projectWrite ? 'بله' : 'خیر'}</span></div>
+                  {report.usage ? <div style={{ marginTop: 8 }}><span className="muted">نحوهٔ استفاده: </span><span>{report.usage}</span></div> : null}
+                </div>
+              </div>
+            ) : null}
+
+            {report.riskLevel === 'high' && report.installable && !installed ? (
+              <label className="checkbox" style={{ padding: 10, border: '1px solid var(--border)', borderRadius: 9, background: 'var(--danger-soft)' }}>
+                <input type="checkbox" checked={force} onChange={(event) => setForce(event.target.checked)} />
+                <span>ریسک این ابزار بالاست و مسئولیت اجرای آن را می‌پذیرم.</span>
+              </label>
+            ) : null}
+
+            {installed ? (
+              <div className="alert alert--success">
+                <Icon name="check" size={16} />
+                <span>
+                  «{installed.displayName}» با شناسهٔ <span className="code">{installed.name}</span> ثبت شد. اگر ابزار Node است، در صفحهٔ ابزارها «نصب وابستگی‌ها» را بزن.
+                </span>
+              </div>
+            ) : null}
+
+            <div className="alert">
+              <Icon name="shield" size={15} />
+              <span>هیچ اسکریپت نصب یا کدی هنگام بازرسی اجرا نمی‌شود. نصب وابستگی‌ها با <span className="code">--ignore-scripts</span> انجام می‌شود؛ اجرای ابزار همچنان ریسک خودش را دارد.</span>
             </div>
           </div>
         </Modal>

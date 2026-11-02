@@ -240,6 +240,7 @@ export interface Plugin {
   manifest: PluginManifest
   lastRunAt: string | null
   lastStatus: PluginRunStatus | null
+  hasDependencies: boolean
 }
 
 export type PluginRunStatus = 'queued' | 'running' | 'success' | 'failed' | 'cancelled' | 'timeout'
@@ -357,6 +358,57 @@ export interface GithubRepoDetail extends GithubRepoSummary {
   sizeKb: number
   homepage: string | null
   compatibility: string
+}
+
+export interface ToolAiVerdict {
+  used: boolean
+  verdict: 'safe' | 'caution' | 'unsafe' | 'unknown'
+  riskLevel: 'low' | 'medium' | 'high'
+  summary: string
+  capabilities: string[]
+  runnable: boolean
+  runtime: 'node' | 'python' | 'binary' | 'web' | 'unknown'
+  usage: string
+  warnings: string[]
+  permissions: { network: boolean; projectWrite: boolean }
+}
+
+export interface IntegrationFinding {
+  severity: 'info' | 'warning' | 'critical'
+  message: string
+  file?: string
+}
+
+export interface IntegrationReport {
+  fullName: string
+  repoUrl: string
+  license: string | null
+  stars: number
+  riskLevel: 'low' | 'medium' | 'high'
+  ai: ToolAiVerdict | null
+  runtime: 'node' | 'python' | 'binary' | 'web' | 'unknown'
+  installable: boolean
+  reason: string
+  packageName: string | null
+  bin: string | null
+  scripts: string[]
+  fileCount: number
+  sizeKb: number
+  findings: IntegrationFinding[]
+  proposedManifest: PluginManifest | null
+  usage: string
+}
+
+export interface IntegrationInstallResult {
+  plugin: Plugin
+  report: IntegrationReport
+}
+
+export interface InstallDepsResult {
+  pluginId: string
+  ok: boolean
+  exitCode: number | null
+  logs: string
 }
 
 export interface QaFinding {

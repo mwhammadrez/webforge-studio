@@ -16,6 +16,9 @@ import type {
   FileNode,
   GithubRepoDetail,
   GithubRepoSummary,
+  InstallDepsResult,
+  IntegrationInstallResult,
+  IntegrationReport,
   IpcResult,
   Plugin,
   PluginRun,
@@ -45,6 +48,7 @@ export const IPC = {
   projectsCreate: 'projects:create',
   projectsOpenDialog: 'projects:openDialog',
   projectsOpenPath: 'projects:openPath',
+  projectsImport: 'projects:import',
   projectsDetect: 'projects:detect',
   projectsRemove: 'projects:remove',
   projectsRename: 'projects:rename',
@@ -69,7 +73,10 @@ export const IPC = {
   pluginsRun: 'plugins:run',
   pluginsCancel: 'plugins:cancel',
   pluginsRuns: 'plugins:runs',
+  pluginInstallDeps: 'plugins:installDeps',
   pluginsEvent: 'plugins:event',
+  integrationInspect: 'integration:inspect',
+  integrationInstall: 'integration:install',
   aiPlan: 'ai:plan',
   aiGenerate: 'ai:generate',
   aiCancel: 'ai:cancel',
@@ -106,6 +113,7 @@ export interface WebForgeApi {
     create(name: string): Promise<IpcResult<Project>>
     openDialog(): Promise<IpcResult<Project | null>>
     openPath(path: string): Promise<IpcResult<Project>>
+    import(path: string, allowUnknown: boolean): Promise<IpcResult<Project>>
     detect(path: string): Promise<IpcResult<ProjectDetection>>
     remove(projectId: string, deleteFiles: boolean): Promise<IpcResult<{ movedTo: string | null }>>
     rename(projectId: string, name: string): Promise<IpcResult<Project>>
@@ -138,6 +146,7 @@ export interface WebForgeApi {
     run(pluginId: string, projectId: string | null, inputs: Record<string, string | number | boolean>): Promise<IpcResult<PluginRunResult>>
     cancel(runId: string): Promise<IpcResult<boolean>>
     runs(pluginId?: string): Promise<IpcResult<PluginRun[]>>
+    installDependencies(pluginId: string): Promise<IpcResult<InstallDepsResult>>
     onEvent(callback: (event: PluginRunEvent) => void): Unsubscribe
   }
   ai: {
@@ -145,6 +154,10 @@ export interface WebForgeApi {
     generate(brief: AiBrief, plan: AiSitePlan, jobId: string): Promise<IpcResult<AiGenerateResult>>
     cancel(jobId: string): Promise<IpcResult<boolean>>
     onProgress(callback: (progress: AiProgress) => void): Unsubscribe
+  }
+  integration: {
+    inspect(fullName: string): Promise<IpcResult<IntegrationReport>>
+    install(fullName: string, force: boolean): Promise<IpcResult<IntegrationInstallResult>>
   }
   discover: {
     search(query: string, page: number, sort: 'stars' | 'updated' | 'best-match'): Promise<IpcResult<{ total: number; items: GithubRepoSummary[] }>>

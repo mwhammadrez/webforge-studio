@@ -280,10 +280,29 @@ export default function Workspace(): React.JSX.Element {
       <div className="row row--between" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
         <div className="row" style={{ gap: 12 }}>
           <div>
-            <h1 className="page-header__title" style={{ fontSize: 19 }}>{project.name}</h1>
+            <div className="row" style={{ gap: 8 }}>
+              <h1 className="page-header__title" style={{ fontSize: 19 }}>{project.name}</h1>
+              {projects.length > 1 ? (
+                <select
+                  className="select"
+                  style={{ maxWidth: 200, minHeight: 30, padding: '2px 8px', fontSize: 11.5 }}
+                  value={project.id}
+                  onChange={(event) => {
+                    if (project) void window.webforge.preview.stop(project.id)
+                    setPreview(null)
+                    setPreviewGlobal(null)
+                    setActiveProject(event.target.value)
+                  }}
+                  aria-label="تغییر پروژه"
+                >
+                  {projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              ) : null}
+            </div>
             <div className="path" style={{ maxWidth: 460 }}>{project.path}</div>
           </div>
           {statusBadge(project.status)}
+          {project.sourceUrl ? null : <span className="badge badge--info">پروژهٔ محلی</span>}
           {preview?.running ? <span className="badge badge--success">پیش‌نمایش فعال</span> : <span className="badge">پیش‌نمایش متوقف</span>}
         </div>
         <div className="row row--wrap">
@@ -306,6 +325,13 @@ export default function Workspace(): React.JSX.Element {
           <Button size="sm" variant="ghost" icon="folder" onClick={() => void window.webforge.app.openPath(project.path)} aria-label="پوشهٔ پروژه" />
         </div>
       </div>
+
+      {project.type === 'node' ? (
+        <div className="alert alert--info" style={{ marginBottom: 10 }}>
+          <Icon name="alert" size={15} />
+          <span>این پروژه Node شناسایی شده است. فایل‌ها و تست کار می‌کنند؛ برای پیش‌نمایش، فایل HTML استاتیک لازم است یا از dev server جدا استفاده کن.</span>
+        </div>
+      ) : null}
 
       <div className={`workspace ${zen ? 'workspace--zen' : ''}`}>
         <aside className="workspace__panel">

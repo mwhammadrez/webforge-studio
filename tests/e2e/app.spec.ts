@@ -13,6 +13,7 @@ let siteUrl = ''
 let userData = ''
 let projectsDir = ''
 let pluginDir = ''
+let manualDir = ''
 
 test.describe.configure({ mode: 'serial' })
 
@@ -20,6 +21,12 @@ test.beforeAll(async () => {
   userData = fs.mkdtempSync(path.join(os.tmpdir(), 'webforge-e2e-user-'))
   projectsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'webforge-e2e-projects-'))
   pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), 'webforge-e2e-plugin-'))
+  manualDir = fs.mkdtempSync(path.join(os.tmpdir(), 'webforge-e2e-manual-'))
+  fs.writeFileSync(
+    path.join(manualDir, 'index.html'),
+    '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>لوکال</title></head><body><h1 id="local-title">پروژهٔ دستی</h1><p>از پوشهٔ لوکال</p></body></html>',
+    'utf8'
+  )
   fs.writeFileSync(
     path.join(pluginDir, 'index.js'),
     "const fs = require('fs'); fs.writeFileSync('report.json', JSON.stringify({ ok: true })); console.log('PLUGIN_OK');\n",
@@ -187,4 +194,21 @@ test('theme toggle persists', async () => {
   const after = await win.locator('html').getAttribute('data-theme')
   expect(after).not.toBe(before)
   await win.screenshot({ path: 'tests/e2e/final.png', fullPage: false })
+})
+
+test('imports a local folder and exposes it to the visual editor and QA', async () => {
+  const imported = await win.evaluate((dir) => window.webforge.projects.import(dir, false), manualDir)
+  expect(imported.ok).toBe(true)
+  await win.reload()
+  await win.waitForTimeout(1200)
+  await win.locator('.sidebar .nav__item').filter({ hasText: 'پروژه‌ها' }).click()
+  const card = win.locator('.card').filter({ hasText: 'webforge-e2e-manual' }).first()
+  await expect(card).toBeVisible()
+  await card.getByRole('button', { name: 'باز کردن', exact: true }).click()
+  const frame = win.frameLocator('iframe.preview-frame')
+  await expect(frame.locator('h1#local-title')).toBeVisible({ timeout: 40_000 })
+  await win.locator('.sidebar .nav__item').filter({ hasText: 'تستر سایت' }).click()
+  await expect(win.locator('body')).toContainText('webforge-e2e-manual')
+  await win.getByRole('button', { name: 'اجرای تست' }).click()
+  await expect(win.getByText('امتیاز کلی کیفیت')).toBeVisible({ timeout: 150_000 })
 })

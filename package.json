@@ -1,6 +1,6 @@
 {
   "name": "webforge-studio",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "WebForge Studio — استودیوی استخراج، ویرایش و ساخت سایت",
   "main": "./out/main/index.js",
   "author": "WebForge",
@@ -26,6 +26,7 @@
     "audit:deps": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
+    "adm-zip": "^0.6.1",
     "axe-core": "^4.14.0",
     "cheerio": "^1.2.0",
     "chokidar": "^4.0.3",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@types/adm-zip": "^0.5.8",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",

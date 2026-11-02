@@ -10,8 +10,8 @@ $ npm run typecheck
 (exit 0، بدون خروجی)
 
 $ npm test
-Test Files  7 passed (6)
-Tests       22 passed (22)
+Test Files  7 passed (7)
+Tests       25 passed (25)
 ```
 
 | فایل | پوشش |
@@ -22,6 +22,7 @@ Tests       22 passed (22)
 | `tests/preview.test.ts` | سرو HTML + تزریق، ۴۰۴، API پنل، آپلود، توقف |
 | `tests/manifest.test.ts` | اعتبارسنجی مانیفست و defaultها |
 | `tests/ai.test.ts` | پلن، تولید کامل با SSE جعلی، 401، بدون کلید |
+| `tests/integration-analysis.test.ts` | تشخیص bin/runtime و ساخت مانیفست ادغام |
 
 ```text
 $ npm run check:placeholders
@@ -42,7 +43,7 @@ out/renderer/assets/index-*.js 796.63 kB
 
 ```text
 $ xvfb-run -a npx playwright test
-Running 7 tests using 1 worker
+Running 8 tests using 1 worker
 
 ✓ dashboard and navigation render in Persian RTL
 ✓ extracts a real site through the UI
@@ -51,8 +52,9 @@ Running 7 tests using 1 worker
 ✓ external Node plugin runs with logs and output contract
 ✓ QA tester runs and produces a report
 ✓ theme toggle persists
+✓ imports a local folder and exposes it to the visual editor and QA
 
-7 passed (7.4s)
+8 passed (11.6s)
 ```
 
 این تست‌ها واقعاً:
@@ -88,6 +90,27 @@ $ xvfb-run -a node scripts-smoke-packaged.mjs
 TITLE WebForge Studio
 TEXT W | WebForge Studio | استودیوی سایت | ... فضای کاری تو ...
 ```
+
+## ۳.۵ ادغام واقعی یک ابزار GitHub
+
+```text
+$ xvfb-run -a node scripts/manual/test-integration.mjs
+INSPECT_OK true
+fullName: sindresorhus/np | license: MIT | risk: medium | runtime: node
+installable: true | packageName: np | bin: ./source/cli.js | files: 215
+INSTALL_OK true
+PLUGIN {"name":"np","runtime":"node","hasDependencies":false}
+
+$ xvfb-run -a node scripts/manual/test-integration-deps.mjs
+DEPS_OK true EXIT 0
+added 563 packages in 20s
+
+$ xvfb-run -a node scripts/manual/test-integration-run.mjs
+RUN_OK true STATUS success
+stdout: A better `npm publish` / Usage / $ np <version> …
+```
+
+این مسیر کامل «کشف → بازرسی → افزودن → نصب وابستگی → اجرا» را با یک ریپوی واقعی تأیید می‌کند.
 
 ## ۴. موارد تأیید نشده (NOT VERIFIED)
 

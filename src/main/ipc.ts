@@ -11,7 +11,9 @@ import {
   githubRepoSchema,
   githubSearchSchema,
   openPathSchema,
+  pluginIdSchema,
   pluginRemoveSchema,
+  pathSchema,
   pluginRunSchema,
   pluginToggleSchema,
   projectIdSchema,
@@ -34,6 +36,7 @@ import type { EditorService } from './services/editor'
 import type { PluginService } from './services/plugins'
 import type { AiService } from './services/ai'
 import type { DiscoveryService } from './services/discovery'
+import type { IntegrationService } from './services/integration'
 import type { QaService } from './services/qa'
 import { IPC } from '@shared/ipc'
 
@@ -48,6 +51,7 @@ export interface MainContext {
   plugins: PluginService
   ai: AiService
   discovery: DiscoveryService
+  integration: IntegrationService
   qa: QaService
   getWindow: () => BrowserWindow | null
 }
@@ -199,6 +203,23 @@ export function registerIpc(context: MainContext): void {
     return context.projects.register({ name: path.basename(input.path), dir: input.path, type: detection.type })
   })
 
+  handle(
+    IPC.projectsImport,
+    z.object({ path: pathSchema, allowUnknown: z.boolean().default(false) }),
+    (input) => {
+      const detection = context.projects.detect(input.path)
+      if (detection.type === 'unknown' && !input.allowUnknown) {
+        throw new AppError('NO_ENTRY_FILE', 'این پوشه فایل قابل‌اجرایی برای سایت ندارد.')
+      }
+      return context.projects.register({
+        name: path.basename(input.path),
+        dir: input.path,
+        type: detection.type,
+        status: detection.type === 'unknown' ? 'partial' : 'ready'
+      })
+    }
+  )
+
   handle(IPC.projectsDetect, openPathSchema, (input) => context.projects.detect(input.path))
 
   handle(IPC.projectsRemove, removeProjectSchema, (input) => context.projects.remove(input.projectId, input.deleteFiles))
@@ -270,6 +291,16 @@ export function registerIpc(context: MainContext): void {
 
   handle(IPC.pluginsRuns, z.object({ pluginId: z.string().optional() }).optional(), (input) =>
     context.plugins.runs(input?.pluginId)
+  )
+
+  handle(IPC.pluginInstallDeps, pluginIdSchema, (input) => context.plugins.installDependencies(input.pluginId))
+
+  handle(IPC.integrationInspect, githubRepoSchema, (input) => context.integration.inspect(input.fullName))
+
+  handle(
+    IPC.integrationInstall,
+    z.object({ fullName: z.string().regex(/^[\w.-]+\/[\w.-]+$/), force: z.boolean().default(false) }),
+    (input) => context.integration.install(input.fullName, input.force)
   )
 
   handle(IPC.aiPlan, aiBriefSchema, (brief) => context.ai.plan(brief))

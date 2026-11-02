@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import type { Project } from '@shared/types'
+import type { Project, ProjectDetection } from '@shared/types'
 import { useApp } from '../store'
-import { Button, Confirm, Empty, Field, Modal, statusBadge } from '../components/ui'
+import { Button, Confirm, Empty, Field, Modal, SectionTitle, statusBadge } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { errorMessage, unwrap } from '../lib/api'
 import { fa, shortDate, timeAgo } from '../lib/format'
@@ -19,6 +19,8 @@ export default function Projects(): React.JSX.Element {
   const [renameValue, setRenameValue] = useState('')
   const [removing, setRemoving] = useState<Project | null>(null)
   const [deleteFiles, setDeleteFiles] = useState(false)
+  const [scan, setScan] = useState<{ path: string; detection: ProjectDetection } | null>(null)
+  const [importing, setImporting] = useState(false)
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -33,12 +35,28 @@ export default function Projects(): React.JSX.Element {
 
   const openFolder = async (): Promise<void> => {
     try {
-      const project = await unwrap(window.webforge.projects.openDialog())
-      if (!project) return
-      await refreshProjects()
-      navigate('workspace', project.id)
+      const folder = await unwrap(window.webforge.app.pickFolder('پوشهٔ سایت محلی'))
+      if (!folder) return
+      const detection = await unwrap(window.webforge.projects.detect(folder))
+      setScan({ path: folder, detection })
     } catch (error) {
-      toast('error', 'باز کردن پوشه ناموفق بود', errorMessage(error))
+      toast('error', 'بررسی پوشه ناموفق بود', errorMessage(error))
+    }
+  }
+
+  const importProject = async (): Promise<void> => {
+    if (!scan) return
+    setImporting(true)
+    try {
+      const project = await unwrap(window.webforge.projects.import(scan.path, true))
+      await refreshProjects()
+      setScan(null)
+      navigate('workspace', project.id)
+      toast('success', 'پروژهٔ محلی اضافه شد', `${project.name} — ${project.fileCount} فایل`)
+    } catch (error) {
+      toast('error', 'افزودن پروژه ناموفق بود', errorMessage(error))
+    } finally {
+      setImporting(false)
     }
   }
 
@@ -163,6 +181,9 @@ export default function Projects(): React.JSX.Element {
                 <Button size="sm" variant="primary" icon="edit" onClick={() => navigate('workspace', project.id)}>
                   باز کردن
                 </Button>
+                <Button size="sm" variant="ghost" icon="shield" onClick={() => navigate('qa', project.id)}>
+                  تست
+                </Button>
                 <Button size="sm" variant="ghost" icon="folder" onClick={() => void window.webforge.app.openPath(project.path)}>
                   پوشه
                 </Button>
@@ -177,6 +198,63 @@ export default function Projects(): React.JSX.Element {
           ))}
         </div>
       )}
+
+      {scan ? (
+        <Modal
+          title="بررسی پوشهٔ محلی"
+          onClose={() => setScan(null)}
+          width={720}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setScan(null)}>انصراف</Button>
+              <Button variant="primary" icon="plus" onClick={() => void importProject()} loading={importing}>
+                افزودن به پروژه‌ها
+              </Button>
+            </>
+          }
+        >
+          <div className="stack">
+            <div className="path">{scan.path}</div>
+            <div className="grid grid--3" style={{ gap: 8 }}>
+              <ScanStat label="نوع" value={scan.detection.type === 'static' ? 'استاتیک' : scan.detection.type === 'node' ? 'Node' : 'نامشخص'} />
+              <ScanStat label="فایل‌ها" value={fa(scan.detection.fileCount)} />
+              <ScanStat label="صفحات HTML" value={fa(scan.detection.htmlFiles.length)} />
+            </div>
+            <div className="row row--wrap" style={{ gap: 6 }}>
+              <span className={`badge ${scan.detection.type === 'unknown' ? 'badge--warn' : 'badge--success'}`}>
+                {scan.detection.type === 'unknown' ? 'entry point پیدا نشد' : `entry: ${scan.detection.entryFile ?? '—'}`}
+              </span>
+              {scan.detection.framework ? <span className="badge">{scan.detection.framework}</span> : null}
+              {scan.detection.packageJson ? <span className="badge">package.json</span> : null}
+            </div>
+            <div>
+              <SectionTitle title="نتیجهٔ بررسی" />
+              <div className="stack" style={{ gap: 4 }}>
+                {scan.detection.hints.map((hint) => (
+                  <div key={hint} className="alert" style={{ padding: '7px 10px' }}><Icon name="check" size={14} /><span>{hint}</span></div>
+                ))}
+                {scan.detection.hints.length === 0 ? <div className="alert alert--warn">هیچ سرنخ مفیدی پیدا نشد.</div> : null}
+              </div>
+            </div>
+            {scan.detection.type === 'unknown' ? (
+              <div className="alert alert--warn">
+                <Icon name="alert" size={16} />
+                <span>این پوشه index.html ندارد؛ می‌توانی با هشدار اضافه‌اش کنی، اما پیش‌نمایش و ویرایشگر بصری ممکن است صفحه‌ای برای نمایش پیدا نکنند.</span>
+              </div>
+            ) : null}
+            {scan.detection.type === 'node' ? (
+              <div className="alert alert--info">
+                <Icon name="info" size={16} />
+                <span>پروژهٔ Node شناسایی شد. ویرایش فایل‌ها و تست انجام می‌شود، اما اجرای dev server فعلاً پشتیبانی نمی‌شود؛ اگر index.html داشته باشد پیش‌نمایش استاتیک کار می‌کند.</span>
+              </div>
+            ) : null}
+            <div className="alert alert--success">
+              <Icon name="check" size={16} />
+              <span>بعد از افزودن، پروژه در ویرایشگر بصری، تستر سایت و لیست پروژه‌ها دیده می‌شود.</span>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
 
       {creating ? (
         <Modal
@@ -233,6 +311,15 @@ export default function Projects(): React.JSX.Element {
           }
         />
       ) : null}
+    </div>
+  )
+}
+
+function ScanStat({ label, value }: { label: string; value: string }): React.JSX.Element {
+  return (
+    <div style={{ background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: 9, padding: '8px 10px' }}>
+      <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{label}</div>
+      <div style={{ fontWeight: 750, fontSize: 13 }}>{value}</div>
     </div>
   )
 }

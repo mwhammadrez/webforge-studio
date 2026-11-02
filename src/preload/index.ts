@@ -33,6 +33,7 @@ const api: WebForgeApi = {
     create: (name) => invoke('projects:create', { name }),
     openDialog: () => invoke('projects:openDialog'),
     openPath: (path) => invoke('projects:openPath', { path }),
+    import: (path, allowUnknown) => invoke('projects:import', { path, allowUnknown }),
     detect: (path) => invoke('projects:detect', { path }),
     remove: (projectId, deleteFiles) => invoke('projects:remove', { projectId, deleteFiles }),
     rename: (projectId, name) => invoke('projects:rename', { projectId, name }),
@@ -65,7 +66,12 @@ const api: WebForgeApi = {
     run: (pluginId, projectId, inputs) => invoke('plugins:run', { pluginId, projectId, inputs }),
     cancel: (runId) => invoke('plugins:cancel', { runId }),
     runs: (pluginId) => invoke('plugins:runs', pluginId ? { pluginId } : undefined),
+    installDependencies: (pluginId) => invoke('plugins:installDeps', { pluginId }),
     onEvent: (callback) => subscribe(IPC.pluginsEvent, callback)
+  },
+  integration: {
+    inspect: (fullName) => invoke('integration:inspect', { fullName }),
+    install: (fullName, force) => invoke('integration:install', { fullName, force })
   },
   ai: {
     plan: (brief) => invoke('ai:plan', brief),

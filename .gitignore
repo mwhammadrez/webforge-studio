@@ -13,3 +13,5 @@ Thumbs.db
 WebForge Projects/
 
 *.tsbuildinfo
+
+tests/e2e/final.png

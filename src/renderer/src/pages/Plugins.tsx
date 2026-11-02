@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Plugin, PluginInput, PluginRun, PluginRunEvent } from '@shared/types'
+import type { InstallDepsResult, Plugin, PluginInput, PluginRun, PluginRunEvent } from '@shared/types'
 import { useApp } from '../store'
 import { Button, Confirm, Empty, Field, Modal, SectionTitle, statusBadge } from '../components/ui'
 import { Icon } from '../components/Icon'
@@ -13,6 +13,8 @@ export default function Plugins(): React.JSX.Element {
   const [runningPlugin, setRunningPlugin] = useState<Plugin | null>(null)
   const [runs, setRuns] = useState<PluginRun[]>([])
   const [removing, setRemoving] = useState<Plugin | null>(null)
+  const [depResult, setDepResult] = useState<InstallDepsResult | null>(null)
+  const [depLoading, setDepLoading] = useState<string | null>(null)
 
   const load = useCallback(async (): Promise<void> => {
     try {
@@ -39,6 +41,20 @@ export default function Plugins(): React.JSX.Element {
       toast('success', 'ابزار ثبت شد', plugin.displayName)
     } catch (error) {
       toast('error', 'افزودن ابزار ناموفق بود', errorMessage(error))
+    }
+  }
+
+  const installDeps = async (plugin: Plugin): Promise<void> => {
+    setDepLoading(plugin.id)
+    try {
+      const result = await unwrap(window.webforge.plugins.installDependencies(plugin.id))
+      setDepResult(result)
+      await load()
+      toast(result.ok ? 'success' : 'error', result.ok ? 'وابستگی‌ها نصب شدند' : 'نصب وابستگی‌ها ناموفق بود')
+    } catch (error) {
+      toast('error', 'نصب وابستگی‌ها ناموفق بود', errorMessage(error))
+    } finally {
+      setDepLoading(null)
     }
   }
 
@@ -108,6 +124,11 @@ export default function Plugins(): React.JSX.Element {
                 {plugin.requiresNetwork ? <span className="badge badge--warn"><Icon name="globe" size={11} /> شبکه</span> : null}
                 {plugin.requiresProjectWrite ? <span className="badge badge--warn"><Icon name="save" size={11} /> نوشتن در پروژه</span> : null}
                 <span className="badge"><Icon name="clock" size={11} /> {plugin.lastRunAt ? timeAgo(plugin.lastRunAt) : 'اجرا نشده'}</span>
+                {plugin.runtime === 'node' ? (
+                  <span className={`badge ${plugin.hasDependencies ? 'badge--success' : 'badge--warn'}`}>
+                    {plugin.hasDependencies ? 'وابستگی آماده' : 'وابستگی نصب نشده'}
+                  </span>
+                ) : null}
               </div>
               <div className="row" style={{ marginTop: 12 }}>
                 <Button size="sm" variant="primary" icon="play" onClick={() => setRunningPlugin(plugin)} disabled={!plugin.enabled}>
@@ -116,6 +137,11 @@ export default function Plugins(): React.JSX.Element {
                 <Button size="sm" variant="ghost" onClick={() => void toggle(plugin)}>
                   {plugin.enabled ? 'غیرفعال' : 'فعال'}
                 </Button>
+                {plugin.runtime === 'node' ? (
+                  <Button size="sm" variant="ghost" icon="cpu" onClick={() => void installDeps(plugin)} loading={depLoading === plugin.id}>
+                    نصب وابستگی‌ها
+                  </Button>
+                ) : null}
                 <span className="spacer" />
                 {plugin.runtime !== 'builtin' ? (
                   <Button size="sm" variant="ghost" icon="trash" onClick={() => setRemoving(plugin)} aria-label="حذف" />
@@ -162,6 +188,23 @@ export default function Plugins(): React.JSX.Element {
           defaultProjectId={activeProjectId ?? projects[0]?.id ?? null}
           onClose={() => { setRunningPlugin(null); void load() }}
         />
+      ) : null}
+
+      {depResult ? (
+        <Modal
+          title={depResult.ok ? 'وابستگی‌ها نصب شدند' : 'نصب وابستگی‌ها ناموفق بود'}
+          onClose={() => setDepResult(null)}
+          width={820}
+          footer={<Button variant="primary" onClick={() => setDepResult(null)}>بستن</Button>}
+        >
+          <div className="stack">
+            <div className={`alert ${depResult.ok ? 'alert--success' : 'alert--error'}`}>
+              <Icon name={depResult.ok ? 'check' : 'alert'} size={16} />
+              <span>کد خروج: {depResult.exitCode === null ? '—' : fa(depResult.exitCode)}</span>
+            </div>
+            <pre className="log" style={{ maxHeight: 380 }}>{depResult.logs || 'خروجی نداشت.'}</pre>
+          </div>
+        </Modal>
       ) : null}
 
       {removing ? (

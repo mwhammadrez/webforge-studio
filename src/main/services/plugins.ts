@@ -385,6 +385,53 @@ export class PluginService {
     }))
   }
 
+  hasDependencies(entry: string): boolean {
+    if (entry.startsWith('builtin:')) return true
+    return fs.existsSync(path.join(entry, 'node_modules'))
+  }
+
+  async installDependencies(pluginId: string): Promise<import('@shared/types').InstallDepsResult> {
+    const plugin = this.get(pluginId)
+    if (plugin.runtime !== 'node') {
+      throw new AppError('DEPS_UNSUPPORTED', 'نصب خودکار وابستگی فقط برای ابزارهای Node پشتیبانی می‌شود.')
+    }
+    if (plugin.entry.startsWith('builtin:')) {
+      return { pluginId, ok: true, exitCode: 0, logs: 'ابزار داخلی وابستگی خارجی ندارد.' }
+    }
+    const packageJson = path.join(plugin.entry, 'package.json')
+    if (!fs.existsSync(packageJson)) throw new AppError('DEPS_NO_PACKAGE', 'package.json در پوشهٔ ابزار پیدا نشد.')
+    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+    const logs: string[] = []
+    const result = await new Promise<{ code: number | null }>((resolve) => {
+      const child = spawn(npm, ['install', '--ignore-scripts', '--no-audit', '--no-fund'], {
+        cwd: plugin.entry,
+        env: { PATH: process.env.PATH, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, TEMP: process.env.TEMP, TMP: process.env.TMP, SystemRoot: process.env.SystemRoot, npm_config_registry: 'https://registry.npmjs.org/', npm_config_ignore_scripts: 'true' },
+        windowsHide: true
+      })
+      const timer = setTimeout(() => {
+        logs.push('زمان نصب وابستگی‌ها تمام شد؛ پروسه متوقف شد.')
+        if (child.pid) {
+          if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true })
+          else child.kill('SIGKILL')
+        }
+      }, 900_000)
+      child.stdout?.on('data', (chunk: Buffer) => logs.push(chunk.toString('utf8')))
+      child.stderr?.on('data', (chunk: Buffer) => logs.push(chunk.toString('utf8')))
+      child.on('error', (error) => {
+        clearTimeout(timer)
+        logs.push(error.message)
+        resolve({ code: null })
+      })
+      child.on('close', (code) => {
+        clearTimeout(timer)
+        resolve({ code })
+      })
+    })
+    const text = logs.join('').slice(-200_000)
+    this.logger.info('PLUGIN_DEPS_INSTALLED', 'نصب وابستگی ابزار انجام شد.', { pluginId, exitCode: result.code })
+    return { pluginId, ok: result.code === 0, exitCode: result.code, logs: text }
+  }
+
   private toPlugin(row: PluginRow): Plugin {
     const manifest = JSON.parse(row.manifest) as PluginManifest
     return {
@@ -401,7 +448,8 @@ export class PluginService {
       createdAt: row.created_at,
       manifest,
       lastRunAt: row.last_run_at,
-      lastStatus: row.last_status
+      lastStatus: row.last_status,
+      hasDependencies: this.hasDependencies(row.entry)
     }
   }
 
@@ -458,12 +506,22 @@ export class PluginService {
     for (const name of plugin.manifest.permissions.environment) {
       if (process.env[name] !== undefined) env[name] = process.env[name]
     }
+    env.WEBFORGE_PROJECT_PATH = project?.path ?? ''
+    env.WEBFORGE_INPUTS = JSON.stringify(inputs)
     if (!plugin.manifest.permissions.network) {
       env.HTTP_PROXY = 'http://127.0.0.1:9'
       env.HTTPS_PROXY = 'http://127.0.0.1:9'
     }
     let command = plugin.manifest.command
-    let args = plugin.manifest.args.map(substitute)
+    const expandArg = (template: string): string[] => {
+      const match = template.match(/^\{\{(\w+)\}\}$/)
+      if (match) {
+        const value = inputs[match[1]]
+        if (typeof value === 'string') return splitArguments(value)
+      }
+      return [substitute(template)]
+    }
+    let args = plugin.manifest.args.flatMap(expandArg)
     if (plugin.runtime === 'node') {
       command = process.execPath
       env.ELECTRON_RUN_AS_NODE = '1'
@@ -607,6 +665,43 @@ export class PluginService {
     }
     throw new AppError('KIT_MISSING', 'بستهٔ پنل مدیریت در نصب برنامه پیدا نشد.')
   }
+}
+
+function splitArguments(value: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let quote: '"' | "'" | null = null
+  let escaped = false
+  for (const character of value.trim()) {
+    if (escaped) {
+      current += character
+      escaped = false
+      continue
+    }
+    if (character === '\\') {
+      escaped = true
+      continue
+    }
+    if (quote) {
+      if (character === quote) quote = null
+      else current += character
+      continue
+    }
+    if (character === '"' || character === "'") {
+      quote = character
+      continue
+    }
+    if (/\s/.test(character)) {
+      if (current) {
+        result.push(current)
+        current = ''
+      }
+      continue
+    }
+    current += character
+  }
+  if (current) result.push(current)
+  return result
 }
 
 function toRun(row: RunRow): PluginRun {
