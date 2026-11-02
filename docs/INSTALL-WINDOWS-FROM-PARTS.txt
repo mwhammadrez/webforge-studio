@@ -1,0 +1,39 @@
+WebForge Studio 1.0.0 — Windows x64
+===================================
+سه بخش دانلود شده را باید به هم بچسبانی و با 7-Zip باز کنی.
+
+فایل‌ها:
+  wfs-part-00
+  wfs-part-01
+  wfs-part-02
+
+SHA-256:
+  e8f50e81de85d8be138bd7f742daaa16997c5d6c9089385be9de63df9a6d120d  wfs-part-00
+  b104a91cbc22e307b73f832226750e4b7d3018f3fd2a2e3e74084172a0eedfbf  wfs-part-01
+  0a0d30768f3cdd45ed2243444801689647e455b9c5beda601b428f1e70dd77dc  wfs-part-02
+
+مرحله ۱ — چسباندن (CMD):
+  copy /b wfs-part-00 + wfs-part-01 + wfs-part-02 webforge-studio.7z
+
+یا PowerShell:
+  $out = [IO.File]::Create("$PWD\webforge-studio.7z")
+  foreach ($p in "wfs-part-00","wfs-part-01","wfs-part-02") {
+    $in = [IO.File]::OpenRead("$PWD\$p"); $in.CopyTo($out); $in.Close()
+  }
+  $out.Close()
+
+SHA-256 فایل نهایی باید باشد:
+  9397fa009f4a9499eca85760c7f3e1fdc2e13cf07f4b56df863cdf28160a2332
+
+مرحله ۲ — استخراج با 7-Zip:
+  webforge-studio.7z را Extract کن.
+
+مرحله ۳ — اجرا:
+  win-unpacked\WebForge Studio.exe
+
+نکته‌ها:
+- فایل‌ها امضای دیجیتال ندارند؛ SmartScreen ممکن است هشدار بدهد (More info → Run anyway).
+- داده‌ها در %APPDATA%\WebForge Studio ذخیره می‌شوند.
+- پروژه‌ها به‌صورت پیش‌فرض در Documents\WebForge Projects.
+- کلید DeepSeek در Settings → هوش مصنوعی وارد شود (DPAPI).
+- این بسته در محیط Linux ساخته شده و اجرای واقعی روی ویندوز تأیید نشده است.

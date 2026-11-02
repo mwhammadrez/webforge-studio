@@ -61,7 +61,6 @@
     },
     "files": [
       "out/**/*",
-      "resources/**/*",
       "package.json"
     ],
     "extraResources": [
@@ -85,9 +84,6 @@
         "from": "node_modules/axe-core/axe.min.js",
         "to": "axe.min.js"
       }
-    ],
-    "asarUnpack": [
-      "node_modules/axe-core/**"
     ],
     "win": {
       "target": [
