@@ -114,8 +114,8 @@ stdout: A better `npm publish` / Usage / $ np <version> …
 
 ## ۴. موارد تأیید نشده (NOT VERIFIED)
 
-- اجرای فایل portable روی ویندوز واقعی — ویندوز در محیط نبود.
-- نصب‌کنندهٔ NSIS — `spawn wine ENOENT`.
+- اجرای فایل portable روی ویندوز واقعی — ویندوز در محیط نبود. *(به بخش ۶ مراجعه کن: در ۱۳ آبان روی ویندوز واقعی انجام شد.)*
+- نصب‌کنندهٔ NSIS — `spawn wine ENOENT`. *(در ۱۳ آبان روی ویندوز واقعی ساخته شد.)*
 - اتصال واقعی DeepSeek با کلید پولی — تست با سرور جعلی انجام شد؛ درخواست پولی ارسال نشد.
 - حالت rendered استخراج روی سایت واقعی JS-heavy — کد پیاده شده اما E2E ندارد.
 - دسترس‌پذیری خود اپ با axe — روی UI اجرا نشد.
@@ -129,3 +129,43 @@ npm run verify
 xvfb-run -a npx playwright test     # روی Linux headless
 npm run package:win                 # روی ویندوز یا Linux با Wine برای NSIS
 ```
+
+## ۶. ویندوز واقعی — ۱۳ آبان ۲۰۲۶ (۱.۲.۰)
+
+همهٔ دستورها روی ویندوز ۱۰ (x64)، Node v24.18.0، npm 11.x و Playwright 1.64.1 اجرا شدند.
+مخزن در `C:\Users\MidONe\Desktop\webforge-studio` کلون شد و `npm ci` اجرا شد؛ سیاست
+`allow-scripts` دانلود باینری Electron را متوقف کرد و با `node node_modules/electron/install.js`
+جبران شد (Electron 45.2.1، حدود ۳۵۷M در `node_modules/electron/dist`).
+
+```text
+$ npm run verify
+typecheck: OK
+tests: 33 passed (7 files)
+placeholder gate: passed
+build: OK
+
+$ npm run test:e2e
+14 passed (15.7s)
+  8 tests/e2e/app.spec.ts        (RTL، استخراج، پیش‌نمایش+کلیک-و-ویرایش، پنل ادمین،
+                                  پلاگین Node خارجی، تستر، تم، ورود پوشهٔ محلی)
+  6 tests/e2e/editor-deep.spec.ts (استایل→پیش‌نمایش زنده با toHaveCSS،
+                                  حفظ حالت انتخاب بعد از reload، جایگزینی متن،
+                                  افزودن کلاس + ذخیره/حذف ویژگی بدون فاصلهٔ اضافه،
+                                  درج HTML + مخفی + حذف عنصر، Undo)
+
+$ npm run package:win
+building target=nsis     file=release/WebForge Studio-1.2.0-x64.exe        (124,565,479 B ≈ 119M)
+building target=portable file=release/WebForge Studio-1.2.0-portable.exe   (112,741,874 B ≈ 108M)
+release/win-unpacked                                                       (≈ 383M)
+
+$ "./release/win-unpacked/WebForge Studio.exe"
+[info] APP_READY WebForge Studio آماده شد.
+```
+
+نکات:
+- دو باگ فقط با اجرای واقعی GUI دیده شد و رفع گردید: حالت انتخاب بعد از reload از دست می‌رفت،
+  و پروژهٔ چندصفحه‌ای `clean/old/index.html` را به‌جای صفحهٔ اصلی باز می‌کرد. هر دو حالا E2E دارند.
+- `electron-builder` گزارش `no code signing certificate configured` می‌دهد؛ فایل‌ها امضا ندارند
+  و SmartScreen هشدار می‌دهد.
+- خودِ نصب‌کنندهٔ NSIS نصب/اجرا نشده؛ باینری `win-unpacked` بالا آمده و E2E روی Electron واقعی اجرا شده است.
+

@@ -2,17 +2,17 @@
 
 | مورد | وضعیت |
 |---|---|
-| نسخه | 1.1.0 |
-| تاریخ | 2026-11-02 |
+| نسخه | 1.2.0 |
+| تاریخ | 2026-11-04 |
 | Typecheck | ✅ صفر خطا |
-| Unit/Integration | ✅ 25/25 در 7 فایل |
-| E2E Electron | ✅ 8/8 |
+| Unit/Integration | ✅ 33/33 در 7 فایل |
+| E2E Electron | ✅ 14/14 (8 در `app.spec.ts` + 6 در `editor-deep.spec.ts`) |
 | Placeholder gate | ✅ |
 | Build | ✅ main/preload/renderer |
 | Linux dir package | ✅ `release/linux-unpacked` |
-| Windows portable | ✅ `release/WebForge Studio-1.0.0-portable.exe` |
-| Windows NSIS | ❌ نیاز به Wine در محیط ساخت |
-| Windows execution | ⚠️ در این محیط ویندوز اجرا نشده |
+| Windows portable | ✅ `release/WebForge Studio-1.2.0-portable.exe` |
+| Windows NSIS | ✅ `release/WebForge Studio-1.2.0-x64.exe` — روی ویندوز واقعی ساخته شده (خودِ نصب‌کننده اجرا نشده) |
+| Windows execution | ✅ `win-unpacked/WebForge Studio.exe` روی ویندوز ۱۰ بالا آمد (`APP_READY`)؛ E2E روی Electron واقعی همین ماشین |
 
 ## لاگ زمانی
 
@@ -34,23 +34,33 @@
 - اصلاحات کیفی نهایی: log redaction ایمن، لغو پلاگین حین اجرا، حفظ حالت انتخاب بعد از reload، فونت وزیرمتن در سایت AI، flatten کردن slugهای تودرتو.
 - بیلد Linux و Windows portable؛ اجرای بستهٔ Linux موفق.
 - تلاش برای Gofile ۳/۴: `error-notPremium`، سپس `429`، سپس TLS reset از IP دیتاسنتر. محتوا دریافت نشد.
+- **۱۳ آبان / 2026-11-04 — 1.2.0:** اتصال ابزار با طرح هوش مصنوعی (npx/Python/استاتیک/دستی) +
+  راستی‌آزمایی هر ادعای پلن روی دیسک قبل از اجرا؛ ریپوی وب‌سایت به‌عنوان پروژهٔ قابل‌ویرایش وارد می‌شود.
+  بازسازی اینسپکتور ویرایشگر (محتوا/استایل/ساختار، کلاس، `data-*`، درج و حذف HTML).
+  رفع باگ‌های واقعی: حالت انتخاب بعد از reload، باز شدن `clean/old/index.html` جای صفحهٔ اصلی،
+  فاصلهٔ اضافه بعد از حذف ویژگی، Toast تکراری، اجرای `npm`/`npx` روی ویندوز.
+  امنیتی: بلوک shell-open برای فایل‌های اجرایی، follow نکردن symlink در کپی ریپو،
+  token/origin برای همهٔ پیام‌های iframe.
+  محیط واقعی ویندوز: `npm ci` + دانلود دستی باینری Electron + `package:win` (NSIS + portable) +
+  اجرای باینری بسته‌بندی‌شده + E2E ۱۴ سناریو سبز.
 
 ## شواهد کلیدی
 
 ```text
 $ npm run verify
 typecheck: OK
-tests: 25 passed (7 files)
+tests: 33 passed (7 files)
 placeholder gate: passed
 build: OK
 ```
 
 ```text
-$ xvfb-run -a npx playwright test
-8 passed (11.6s)
+$ npx playwright test
+14 passed
 ```
 
 ```text
-$ npx electron-builder --win portable
-building target=portable file=release/WebForge Studio-1.0.0-portable.exe
+$ npm run package:win
+building target=nsis file=release/WebForge Studio-1.2.0-x64.exe
+building target=portable file=release/WebForge Studio-1.2.0-portable.exe
 ```

@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.2.0 — 2026-11-04
+
+### Added
+- Discover now *connects* a tool instead of only reporting it: the connected AI model
+  proposes a connect plan (`npx`, Python, static project or a manual command), and the
+  main process validates every file path, package name and environment variable the plan
+  claims against the files on disk before anything is registered or run.
+- Website repositories can be imported as editable projects («افزودن به پروژه‌ها»),
+  so an extracted or cloned site opens in the visual editor.
+- Inspector rebuilt around three tabs — محتوا / استایل / ساختار — for any selected element:
+  text runs, colour and box-model editing, class add/remove, `data-*` attribute save and
+  delete, insert markup before/after, hide and remove element.
+- High-risk plans are refused server-side unless the user explicitly forces them.
+- E2E spec `tests/e2e/editor-deep.spec.ts` (6 scenarios) drives the real renderer:
+  style → live preview (`toHaveCSS`), selection across reload, text replacement,
+  class/attribute edits, inserted markup, deletion and undo. 14 E2E scenarios in total.
+
+### Fixed
+- Selection mode was lost after every saved edit because the preview reloads; the reloaded
+  page now restores the mode and re-highlights the selected element.
+- Sites with subpages opened `clean/old/index.html` instead of the homepage; the editor
+  now picks the shallowest `index.html`.
+- Removing an attribute left a stray space inside the tag (`<a href="/x" >`).
+- A batch of applied edits produced one toast per action; now a single success toast.
+- `npm`/`npx` failed on Windows: `.cmd` shims cannot be spawned without a shell, so the
+  CLI is resolved to `npm-cli.js` and run through Electron in Node mode.
+- Dead contract fields (`clickedText`, `hasElementChildren`) are now actually produced and
+  surfaced; the unreachable `projectPath` branch in Discover was removed.
+
+### Security
+- Every message into and out of the sandboxed preview iframe is gated by a per-session
+  token plus origin and `event.source` checks.
+- Shell-open refuses executable/script extensions (`exe`, `msi`, `bat`, `ps1`, `js`, …),
+  which a downloaded repository can contain.
+- Repository copy no longer follows symbolic links, so a crafted archive cannot pull in
+  files that were never inspected.
+
+### Verified
+- Built and smoke-tested on real Windows 10: `npm run package:win` produces the NSIS
+  installer and the portable exe, and the packaged binary starts (`APP_READY`).
+  Unit tests: 33 passing across 7 files.
+
 ## 1.1.0 — 2026-11-02
 
 ### Added
