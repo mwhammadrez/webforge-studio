@@ -44,6 +44,29 @@ describe('PreviewService', () => {
     db.close()
   })
 
+  it('keeps the preview identical to the file while site scripts are blocked', async () => {
+    const { preview, projectId, db, site } = setup()
+    fs.writeFileSync(path.join(site, 'app.js'), 'document.body.innerHTML = "<h1>hydrated</h1>"', 'utf8')
+    fs.writeFileSync(
+      path.join(site, 'page.html'),
+      '<!doctype html><html><body><div style="will-change:transform;opacity:0;transform:translateY(50px)"><h1>From file</h1></div><script src="/app.js"></script></body></html>',
+      'utf8'
+    )
+    const state = await preview.start(projectId)
+    expect(state.scriptsBlocked).toBe(true)
+    const blocked = await fetch(`${state.url}/app.js`)
+    expect(await blocked.text()).toContain('scripts blocked in edit mode')
+    const editPage = await (await fetch(`${state.url}/page.html`)).text()
+    // Pre-animation states would leave the content invisible without the page's own script.
+    expect(editPage).toContain('data-webforge-edit-mode')
+    const live = preview.setScripts(projectId, false)
+    expect(live.scriptsBlocked).toBe(false)
+    expect(await (await fetch(`${state.url}/app.js`)).text()).toContain('hydrated')
+    expect(await (await fetch(`${state.url}/page.html`)).text()).not.toContain('data-webforge-edit-mode')
+    await preview.stop(projectId)
+    db.close()
+  })
+
   it('supports the admin panel content API and uploads', async () => {
     const { preview, projectId, db, site } = setup()
     const state = await preview.start(projectId)

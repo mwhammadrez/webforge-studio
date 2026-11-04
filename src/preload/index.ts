@@ -48,7 +48,8 @@ const api: WebForgeApi = {
   preview: {
     start: (projectId) => invoke('preview:start', { projectId }),
     stop: (projectId) => invoke('preview:stop', { projectId }),
-    state: (projectId) => invoke('preview:state', { projectId })
+    state: (projectId) => invoke('preview:state', { projectId }),
+    setScripts: (projectId, blocked) => invoke('preview:setScripts', { projectId, blocked })
   },
   editor: {
     save: (request) => invoke('editor:save', request),

@@ -22,7 +22,23 @@ interface RunningPreview {
   startedAt: string
   watcher: FSWatcher
   clients: Set<http.ServerResponse>
+  /**
+   * While true the site's own scripts are not served. Builders such as Framer ship a
+   * bundle that re-renders the page from its own snapshot, so the live DOM stops matching
+   * the HTML file and every visual edit loses its target; editing the file as written is
+   * the only reliable contract.
+   */
+  scriptsBlocked: boolean
 }
+
+/**
+ * Page builders hide elements until their animation script reveals them; with scripts
+ * blocked those elements would stay invisible in the editor, so the pre-animation state
+ * is neutralised. Scoped to the inline declaration pair the builders actually emit.
+ */
+const REVEAL_STYLE =
+  '<style data-webforge-edit-mode>[style*="will-change:transform"][style*="opacity:0"]' +
+  '{opacity:1 !important;transform:none !important}</style>'
 
 const UPLOAD_TYPES = new Map([
   ['image/png', '.png'],
@@ -66,6 +82,7 @@ export class PreviewService {
       token: randomUUID().replace(/-/g, ''),
       startedAt: new Date().toISOString(),
       clients: new Set(),
+      scriptsBlocked: true,
       watcher: chokidar.watch(root, {
         ignoreInitial: true,
         ignored: /(^|[/\\])(\.webforge|node_modules|\.git)([/\\]|$)/,
@@ -120,8 +137,18 @@ export class PreviewService {
       token: preview?.token ?? null,
       pid: preview ? process.pid : null,
       startedAt: preview?.startedAt ?? null,
+      scriptsBlocked: preview?.scriptsBlocked ?? true,
       error: null
     }
+  }
+
+  /** Runs or blocks the site's own scripts; the editor needs them off to map clicks onto the file. */
+  setScripts(projectId: string, blocked: boolean): PreviewState {
+    const preview = this.running.get(projectId)
+    if (!preview) throw new AppError('PREVIEW_NOT_RUNNING', 'پیش‌نمایش اجرا نشده است.')
+    preview.scriptsBlocked = blocked
+    this.broadcast(preview)
+    return this.state(projectId)
   }
 
   active(): Array<{ projectId: string; url: string; pid: number }> {
@@ -257,7 +284,10 @@ export class PreviewService {
       const isAdmin = url.searchParams.get('edit') === '1' || /(^|\/)admin\.html$/i.test(pathname)
       if (!isAdmin) {
         const injection = `<script src="/__webforge/editor.js"></script>`
-        html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${injection}</body>`) : html + injection
+        const reveal = preview.scriptsBlocked ? REVEAL_STYLE : ''
+        html = /<\/body>/i.test(html)
+          ? html.replace(/<\/body>/i, `${reveal}${injection}</body>`)
+          : html + reveal + injection
       }
       response.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
@@ -265,6 +295,17 @@ export class PreviewService {
         'X-Content-Type-Options': 'nosniff'
       })
       response.end(html)
+      return
+    }
+    if (preview.scriptsBlocked && isJavaScript(type, file)) {
+      // An empty, valid script keeps the page layout intact while the file's own markup
+      // stays exactly what the editor reads and writes.
+      response.writeHead(200, {
+        'Content-Type': 'text/javascript; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff'
+      })
+      response.end('/* WebForge: scripts blocked in edit mode */')
       return
     }
     response.writeHead(200, {
@@ -386,6 +427,10 @@ export class PreviewService {
     response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
     response.end(JSON.stringify({ ok: true, path: relative, url: `/${relative}` }))
   }
+}
+
+function isJavaScript(type: string, file: string): boolean {
+  return /javascript|ecmascript/i.test(type) || /\.(?:m|c)?js$/i.test(file)
 }
 
 function portFree(port: number): Promise<boolean> {

@@ -159,6 +159,7 @@ export const qaRunSchema = z.object({
 })
 
 export const projectIdSchema = z.object({ projectId: idSchema })
+export const previewScriptsSchema = z.object({ projectId: idSchema, blocked: z.boolean() })
 export const renameProjectSchema = z.object({ projectId: idSchema, name: z.string().trim().min(1).max(120) })
 export const removeProjectSchema = z.object({ projectId: idSchema, deleteFiles: z.boolean().default(false) })
 export const filePathSchema = z.object({ projectId: idSchema, relativePath: z.string().min(1).max(1024) })

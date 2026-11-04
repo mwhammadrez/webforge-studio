@@ -181,3 +181,75 @@ $ "./release/win-unpacked/WebForge Studio.exe"
      «مسئولیت ریسک را می‌پذیرم» می‌خواست؛ اگرچه هیچ کدی اجرا نمی‌شود. گیت ریسک حالا فقط برای
      استراتژی‌هایی است که کد اجرا می‌کنند و یافته‌ها همچنان در مودال نمایش داده می‌شوند.
 
+
+## ۷. ویرایشگر روی سایت Framer واقعی — ۱۳ آبان ۲۰۲۶ (1.2.1)
+
+شکایت کاربر: «هر چی میام ادیت کنم میگه — نتوانستم فایل منبع این بخش را تشخیص دهم».
+پروژهٔ نمونه: `Goldify` (خروجی Framer، ریشهٔ پروژه بدون `clean/`) — روی **کپی** پروژه در
+`%LOCALAPPDATA%\Temp\webforge-goldify-test\Goldify` تست شد؛ پوشهٔ اصلی کاربر دست نخورد
+(`find -newermt 2026-11-04` روی پوشهٔ اصلی: خالی).
+
+### تشخیص (اندازه‌گیری واقعی، نه حدس)
+
+همان تابع `cssPath` اسکریپت تزریق‌شده در مرورگر اجرا و سلکتورها با موتور سمت سرور
+(`cheerio` + `sourceCodeLocationInfo` + لنگر متنی) تطبیق داده شد:
+
+```text
+page=index.html  js=blocked  live body elements=3221  source body elements=3221
+resolved=120 elementNotFound=0 noRange=0
+
+page=index.html  js=live     live body elements=1761  source body elements=3221
+resolved=0     (via fallbackText=0) elementNotFound=120 noRange=0
+```
+
+و متن واقعی داخل فایل در برابر چیزی که مرورگر نشان می‌دهد:
+
+```text
+h1 در index.html          → «سایت فروشگاهی طلا و نقره؛ لوکس، سریع و آماده‌ی فروش»
+h1 در DOM زنده            → "Smarter gold analysis for faster, confident decisions"
+occurrences of that string in index.html → 0   (در assets/.../*.mjs و content.json هست)
+```
+
+یعنی باندل Framer هنگام اجرا کل صفحه را از snapshot خودش (متن انگلیسی قالب) بازمی‌سازد؛
+نه سلکتور و نه لنگر متنی هیچ‌وقت به فایل نمی‌رسند. این همان شکست ۱۰۰٪ بود.
+
+### رفع و تأیید
+
+پیش‌نمایش در حالت ویرایش فایل‌های JS خود سایت را سرو نمی‌کند (سوییچ «اسکریپت‌های سایت»):
+
+```text
+$ npm run test:e2e
+Running 19 tests using 1 worker
+  ok  1..8  tests/e2e/app.spec.ts
+  -  9,10   tests/e2e/discover-live.spec.ts (skipped: نیاز به WEBFORGE_LIVE_NET=1)
+  ok 11..16 tests/e2e/editor-deep.spec.ts
+  ok 17     tests/e2e/editor-hydrated.spec.ts:71 › edit mode shows the file, not the bundle
+  ok 18     tests/e2e/editor-hydrated.spec.ts:77 › a click on a hydrated page saves into the file
+  ok 19     tests/e2e/editor-hydrated.spec.ts:89 › live mode runs the bundle and the editor reports it
+  2 skipped
+  17 passed (18.3s)
+```
+
+اجرای واقعی روی کپی پروژهٔ Goldify کاربر (Electron واقعی، کلیک روی تیتر اصلی صفحه):
+
+```text
+HERO BEFORE: سایت فروشگاهی طلا و نقره؛ لوکس، سریع و آماده‌ی فروش
+SELECTOR: body > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > main:nth-of-type(1)
+          > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)
+          > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1)
+ok 1 › the user's Framer site can be edited by clicking (5.1s)
+→ «عنوانِ آزمایشی وب‌فرج» در index.html نوشته شد و پیش‌نمایش همان را نشان داد
+```
+
+نکات:
+- حالت pre-animation (`style="will-change:transform;opacity:0"`) فقط در حالت ویرایش خنثی می‌شود؛
+  بدون آن بخش‌هایی که اسکریپت سایت ظاهرشان می‌کرد در پیش‌نمایش سفید می‌ماندند.
+- در حالت زنده اگر متن واقعاً در فایل نباشد، پیام خطا نام فایل و دکمهٔ درست را می‌برد
+  (تست واحد: «names script-rendered content as the reason…»).
+بسته‌بندی نهایی روی همان ویندوز ۱۰:
+
+```text
+$ npm run package:win
+building target=nsis     file=release/WebForge Studio-1.2.1-x64.exe        (124,566,269 B ≈ 119M)
+building target=portable file=release/WebForge Studio-1.2.1-portable.exe   (112,741,499 B ≈ 108M)
+```

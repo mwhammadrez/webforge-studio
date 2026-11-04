@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.1 — 2026-11-04
+
+### Fixed
+- **Every visual-editor save failed on sites built by Framer/React-style page builders.**
+  Those sites ship a script bundle that re-renders the page from its own snapshot, so the DOM
+  the user clicks in the preview no longer matches the HTML file on disk and every edit ended
+  with «نتوانستم فایل منبع این بخش را تشخیص دهم». The preview now holds the site's own scripts
+  back by default, so what you see and click is exactly the file being written.
+  A toolbar switch, «اسکریپت‌های سایت: خاموش/روشن», gives the running site back when you want to
+  watch its own behaviour; edits made in that mode are reported instead of silently misapplied.
+- Pages that hide sections until their animation script reveals them (`opacity:0` pre-state)
+  no longer look half-empty in edit mode; the preview neutralises that pre-animation state only.
+- A lost selection is re-anchored onto the smallest element whose whole text equals the clicked
+  run, so text wrapped in child nodes (`<h2><span>…</span></h2>`) is still found.
+- When the clicked text genuinely is not in the file, the error now says so and names the file
+  and the switch that fixes it, instead of blaming the user's selection.
+
+### Verified
+- New E2E spec `tests/e2e/editor-hydrated.spec.ts` (3 scenarios) builds a site whose bundle
+  rewrites the DOM and asserts: edit mode shows the file, a click saves into it, live mode runs
+  the bundle and the editor reports the mismatch. 17 E2E scenarios pass, 2 stay opt-in.
+- Unit tests: 39 passing across 7 files. Re-packaged for Windows as 1.2.1.
+
 ## 1.2.0 — 2026-11-04
 
 ### Added

@@ -185,6 +185,16 @@ export default function Workspace(): React.JSX.Element {
     }
   }
 
+  const toggleScripts = async (): Promise<void> => {
+    if (!project || !preview?.running) return
+    try {
+      setPreviewState(await unwrap(window.webforge.preview.setScripts(project.id, !preview.scriptsBlocked)))
+      reloadPreview()
+    } catch (error) {
+      toast('error', 'تغییر حالت اسکریپت ناموفق بود', errorMessage(error))
+    }
+  }
+
   const applyToFrame = (action: EditAction): void => {
     if (!selected) return
     sendToFrame({
@@ -364,6 +374,16 @@ export default function Workspace(): React.JSX.Element {
         <div className="row row--wrap">
           <Button size="sm" variant={selectMode ? 'primary' : 'default'} icon="edit" onClick={() => setSelectMode((value) => !value)} disabled={!preview?.running}>
             {selectMode ? 'حالت انتخاب فعال' : 'حالت انتخاب'}
+          </Button>
+          <Button
+            size="sm"
+            variant={preview?.scriptsBlocked ? 'default' : 'ghost'}
+            icon="shield"
+            title="روشن: صفحه دقیقاً همان فایل HTML نمایش داده می‌شود و انتخاب‌ها قابل ذخیره‌اند. خاموش: اسکریپت‌های خود سایت اجرا می‌شوند و ممکن است ظاهر صفحه را عوض کنند."
+            onClick={() => void toggleScripts()}
+            disabled={!preview?.running}
+          >
+            {preview?.scriptsBlocked ? 'اسکریپت‌های سایت: خاموش' : 'اسکریپت‌های سایت: روشن'}
           </Button>
           <Button size="sm" variant="ghost" icon="undo" onClick={() => void revert('undo')} disabled={!history.some((item) => !item.reverted)}>Undo</Button>
           <Button size="sm" variant="ghost" icon="redo" onClick={() => void revert('redo')} disabled={!history.some((item) => item.reverted)}>Redo</Button>

@@ -139,6 +139,46 @@ describe('EditorService', () => {
     ).rejects.toMatchObject({ code: 'ELEMENT_NOT_MAPPED' })
   })
 
+  it('names script-rendered content as the reason when the text is not in the file', async () => {
+    const { editor, projectId } = setup()
+    await expect(
+      editor.save({
+        projectId,
+        file: 'index.html',
+        selector: 'body > div:nth-of-type(9) > p:nth-of-type(1)',
+        fallbackText: 'متنی که فقط در مرورگر ساخته می‌شود',
+        action: { type: 'text', text: 'x' }
+      })
+    ).rejects.toMatchObject({ code: 'ELEMENT_NOT_MAPPED', message: expect.stringContaining('اسکریپت‌های خود سایت') })
+  })
+
+  it('re-anchors a lost selection onto the smallest element holding the clicked text', async () => {
+    const root = tempDir('webforge-editor-anchor-')
+    const site = path.join(root, 'site')
+    fs.mkdirSync(site, { recursive: true })
+    fs.writeFileSync(
+      path.join(site, 'index.html'),
+      '<!doctype html><html><head><title>t</title></head><body><section><div class="hero"><h2><span>عنوان اصلی</span></h2><p>زیرنویس</p></div></section></body></html>',
+      'utf8'
+    )
+    const db = makeDb(root)
+    const projects = new ProjectService(db, makeLogger())
+    const project = projects.register({ name: 'site', dir: site, type: 'static' })
+    const editor = new EditorService(db, projects, makeLogger())
+    await editor.save({
+      projectId: project.id,
+      file: 'index.html',
+      // A hydrated page shifts the chain, so the selector matches nothing in the file.
+      selector: 'body > div:nth-of-type(7) > div:nth-of-type(2) > h2:nth-of-type(1)',
+      fallbackText: 'عنوان اصلی',
+      action: { type: 'text', text: 'عنوان تازه' }
+    })
+    const html = fs.readFileSync(path.join(site, 'index.html'), 'utf8')
+    // The anchor lands on the tightest element that actually holds the clicked run.
+    expect(html).toContain('<h2><span>عنوان تازه</span></h2>')
+    expect(html).toContain('<p>زیرنویس</p>')
+  })
+
   it('prevents path traversal', async () => {
     const { editor, projectId } = setup()
     await expect(

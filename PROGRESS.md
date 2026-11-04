@@ -2,16 +2,16 @@
 
 | مورد | وضعیت |
 |---|---|
-| نسخه | 1.2.0 |
+| نسخه | 1.2.1 |
 | تاریخ | 2026-11-04 |
 | Typecheck | ✅ صفر خطا |
-| Unit/Integration | ✅ 36/36 در 7 فایل |
-| E2E Electron | ✅ 14/14 (8 در `app.spec.ts` + 6 در `editor-deep.spec.ts`) + ۲ سناریوی اختیاری `discover-live.spec.ts` با اینترنت واقعی |
+| Unit/Integration | ✅ 39/39 در 7 فایل |
+| E2E Electron | ✅ 17/17 (8 در `app.spec.ts` + 6 در `editor-deep.spec.ts` + 3 در `editor-hydrated.spec.ts`) + ۲ سناریوی اختیاری `discover-live.spec.ts` با اینترنت واقعی |
 | Placeholder gate | ✅ |
 | Build | ✅ main/preload/renderer |
 | Linux dir package | ✅ `release/linux-unpacked` |
-| Windows portable | ✅ `release/WebForge Studio-1.2.0-portable.exe` |
-| Windows NSIS | ✅ `release/WebForge Studio-1.2.0-x64.exe` — روی ویندوز واقعی ساخته شده (خودِ نصب‌کننده اجرا نشده) |
+| Windows portable | ✅ `release/WebForge Studio-1.2.1-portable.exe` |
+| Windows NSIS | ✅ `release/WebForge Studio-1.2.1-x64.exe` — روی ویندوز واقعی ساخته شده (خودِ نصب‌کننده اجرا نشده) |
 | Windows execution | ✅ `win-unpacked/WebForge Studio.exe` روی ویندوز ۱۰ بالا آمد (`APP_READY`)؛ E2E روی Electron واقعی همین ماشین |
 
 ## لاگ زمانی
@@ -43,6 +43,15 @@
   token/origin برای همهٔ پیام‌های iframe.
   محیط واقعی ویندوز: `npm ci` + دانلود دستی باینری Electron + `package:win` (NSIS + portable) +
   اجرای باینری بسته‌بندی‌شده + E2E ۱۴ سناریو سبز.
+- **۱۳ آبان / 2026-11-04 — 1.2.1:** رفع «هر چی میام ادیت کنم میگه» روی پروژهٔ واقعی Goldify.
+  تشخیص: Goldify خروجی Framer است؛ باندل `assets/framerusercontent.com/.../*.mjs` موقع اجرا کل
+  صفحه را از snapshot خودش (نسخهٔ انگلیسی قالب) دوباره می‌سازد — در تست: ۳۲۲۱ عنصر در فایل در
+  برابر ۱۷۶۰ عنصر در DOM زنده، و ۰ از ۱۲۰ سلکتور قابل‌نگاشت. راه‌حل: preview در حالت ویرایش
+  اسکریپت‌های خود سایت را سرو نمی‌کند (سوییچ «اسکریپت‌های سایت: خاموش/روشن»)، پس DOM همان فایل
+  است — ۱۲۰/۱۲۰ سلکتور سبز و ذخیرهٔ واقعی روی کپی پروژهٔ کاربر موفق.
+  ضمناً حالت pre-animation (`opacity:0`) خنثی می‌شود تا صفحه بدون اسکریپت نیمه‌خالی نباشد،
+  لنگرِ از‌دست‌رفته روی کوچک‌ترین عنصر حاوی متن کلیک‌شده بازمی‌گردد، و وقتی متن واقعاً در فایل
+  نیست پیام خطا فایل و دکمهٔ درست را نام می‌برد. تست: ۳ سناریوی E2E جدید + ۳ تست واحد.
 
 ## شواهد کلیدی
 

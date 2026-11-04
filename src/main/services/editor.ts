@@ -87,10 +87,7 @@ export class EditorService {
       const $ = cheerio.load(html, { sourceCodeLocationInfo: true })
       const resolved = this.resolveTarget($, html, request.selector, request.fallbackText)
       if (!resolved) {
-        throw new AppError(
-          'ELEMENT_NOT_MAPPED',
-          'نتوانستم فایل منبع این بخش را تشخیص دهم. صفحه را تازه کن و یک بخش بزرگ‌تر را انتخاب کن.'
-        )
+        throw new AppError('ELEMENT_NOT_MAPPED', this.unmappedMessage(html, request))
       }
       const before = this.readValue(resolved, request.action)
       const after = this.readValueAfter(request.action)
@@ -218,6 +215,15 @@ export class EditorService {
     if (!fs.existsSync(full)) throw new AppError('FILE_NOT_FOUND', 'فایل صفحه پیدا نشد.', 404)
     if (!/\.html?$/i.test(full)) throw new AppError('UNSUPPORTED_FILE', 'ویرایش بصری فقط برای فایل‌های HTML است.')
     return full
+  }
+
+  /** Tells the two failure modes apart: a shifted selection, or text the file never contained. */
+  private unmappedMessage(html: string, request: SaveEditRequest): string {
+    const wanted = normalizeText(request.fallbackText ?? '')
+    if (wanted.length > 2 && !normalizeText(html).includes(wanted)) {
+      return `متنی که انتخاب کردی در فایل «${request.file}» وجود ندارد؛ اسکریپت‌های خود سایت آن را در مرورگر می‌سازند. تا «اسکریپت‌های سایت: خاموش» باشد، پیش‌نمایش همان فایل HTML را نشان می‌دهد و انتخاب‌ها ذخیره می‌شوند.`
+    }
+    return 'نتوانستم فایل منبع این بخش را تشخیص دهم. صفحه را تازه کن و یک بخش بزرگ‌تر را انتخاب کن.'
   }
 
   private resolveTarget(
@@ -349,17 +355,34 @@ export class EditorService {
     if (fallbackText) {
       const normalized = normalizeText(fallbackText)
       if (normalized.length > 2) {
-        let match: cheerio.Cheerio<Element> | null = null
+        let exact: cheerio.Cheerio<Element> | null = null
+        let widest = Number.POSITIVE_INFINITY
+        let narrowest: cheerio.Cheerio<Element> | null = null
         $('body *').each((_index, node) => {
+          if (exact) return false
+          if (node === $('body')[0]) return undefined
           const element = $(node as unknown as Element)
-          const text = normalizeText(element.clone().children().remove().end().text())
-          if (text === normalized && element[0] !== $('body')[0]) {
-            match = element
+          const own = normalizeText(element.clone().children().remove().end().text())
+          if (own === normalized) {
+            exact = element
             return false
+          }
+          // Builders often wrap the clicked run in child nodes, so the whole element matches
+          // even though no single node does; the smallest such element is the real target.
+          if (own.length === 0) {
+            const full = normalizeText(element.text())
+            if (full === normalized) {
+              const size = $.html(element).length
+              if (size < widest) {
+                widest = size
+                narrowest = element
+              }
+            }
           }
           return undefined
         })
-        if (match) return match
+        if (exact) return exact
+        if (narrowest) return narrowest
       }
     }
     return null

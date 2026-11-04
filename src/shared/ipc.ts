@@ -60,6 +60,7 @@ export const IPC = {
   previewStart: 'preview:start',
   previewStop: 'preview:stop',
   previewState: 'preview:state',
+  previewSetScripts: 'preview:setScripts',
   editorSave: 'editor:save',
   editorReplaceImage: 'editor:replaceImage',
   editorUndo: 'editor:undo',
@@ -129,6 +130,7 @@ export interface WebForgeApi {
     start(projectId: string): Promise<IpcResult<PreviewState>>
     stop(projectId: string): Promise<IpcResult<PreviewState>>
     state(projectId: string): Promise<IpcResult<PreviewState>>
+    setScripts(projectId: string, blocked: boolean): Promise<IpcResult<PreviewState>>
   }
   editor: {
     save(request: SaveEditRequest): Promise<IpcResult<EditSummary>>

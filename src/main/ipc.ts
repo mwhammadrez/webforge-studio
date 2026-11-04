@@ -16,6 +16,7 @@ import {
   pathSchema,
   pluginRunSchema,
   pluginToggleSchema,
+  previewScriptsSchema,
   projectIdSchema,
   qaRunSchema,
   removeProjectSchema,
@@ -253,6 +254,9 @@ export function registerIpc(context: MainContext): void {
   handle(IPC.previewStart, projectIdSchema, (input) => context.preview.start(input.projectId))
   handle(IPC.previewStop, projectIdSchema, (input) => context.preview.stop(input.projectId))
   handle(IPC.previewState, projectIdSchema, (input) => context.preview.state(input.projectId))
+  handle(IPC.previewSetScripts, previewScriptsSchema, (input) =>
+    context.preview.setScripts(input.projectId, input.blocked)
+  )
 
   handle(IPC.editorSave, saveEditSchema, (input) => context.editor.save(input))
   handle(IPC.editorReplaceImage, replaceImageSchema, (input) =>

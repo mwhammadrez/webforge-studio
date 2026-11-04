@@ -89,6 +89,8 @@ export interface PreviewState {
   token: string | null
   pid: number | null
   startedAt: string | null
+  /** While true the site's own scripts are not served, so the preview shows the file as written. */
+  scriptsBlocked: boolean
   error: string | null
 }
 
