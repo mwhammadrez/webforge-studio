@@ -159,8 +159,8 @@ $ WEBFORGE_LIVE_NET=1 npx playwright test discover-live
   تبدیل مخزن به پروژهٔ قابل‌ویرایش در `from-github/` (فایل‌ها روی دیسک چک شدند)
 
 $ npm run package:win
-building target=nsis     file=release/WebForge Studio-1.2.0-x64.exe        (124,565,479 B ≈ 119M)
-building target=portable file=release/WebForge Studio-1.2.0-portable.exe   (112,741,874 B ≈ 108M)
+building target=nsis     file=release/WebForge Studio-1.2.0-x64.exe        (124,565,691 B ≈ 119M)
+building target=portable file=release/WebForge Studio-1.2.0-portable.exe   (112,717,974 B ≈ 108M)
 release/win-unpacked                                                       (≈ 383M)
 
 $ "./release/win-unpacked/WebForge Studio.exe"
