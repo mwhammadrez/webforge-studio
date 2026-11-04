@@ -140,18 +140,23 @@ npm run package:win                 # روی ویندوز یا Linux با Wine �
 ```text
 $ npm run verify
 typecheck: OK
-tests: 33 passed (7 files)
+tests: 36 passed (7 files)
 placeholder gate: passed
 build: OK
 
 $ npm run test:e2e
-14 passed (15.7s)
+14 passed (15.7s) · 2 skipped
   8 tests/e2e/app.spec.ts        (RTL، استخراج، پیش‌نمایش+کلیک-و-ویرایش، پنل ادمین،
                                   پلاگین Node خارجی، تستر، تم، ورود پوشهٔ محلی)
   6 tests/e2e/editor-deep.spec.ts (استایل→پیش‌نمایش زنده با toHaveCSS،
                                   حفظ حالت انتخاب بعد از reload، جایگزینی متن،
                                   افزودن کلاس + ذخیره/حذف ویژگی بدون فاصلهٔ اضافه،
                                   درج HTML + مخفی + حذف عنصر، Undo)
+
+$ WEBFORGE_LIVE_NET=1 npx playwright test discover-live
+2 passed (7.1s)
+  جستجوی واقعی در GitHub → باز کردن مخزن → بازرسی → طرح اتصال خودکار
+  تبدیل مخزن به پروژهٔ قابل‌ویرایش در `from-github/` (فایل‌ها روی دیسک چک شدند)
 
 $ npm run package:win
 building target=nsis     file=release/WebForge Studio-1.2.0-x64.exe        (124,565,479 B ≈ 119M)
@@ -168,4 +173,11 @@ $ "./release/win-unpacked/WebForge Studio.exe"
 - `electron-builder` گزارش `no code signing certificate configured` می‌دهد؛ فایل‌ها امضا ندارند
   و SmartScreen هشدار می‌دهد.
 - خودِ نصب‌کنندهٔ NSIS نصب/اجرا نشده؛ باینری `win-unpacked` بالا آمده و E2E روی Electron واقعی اجرا شده است.
+- اجرای زندهٔ Discover روی GitHub دو مشکل واقعی را بیرون آورد و رفع شد:
+  1. هر مخزن Node با `package.json` ولی بدون `bin` در مخزن، پلن `npx <name>` می‌گرفت — یعنی اگر
+     آن name هنوز منتشر نشده باشد، npx هر چیزی را که کسی زیر آن نام منتشر کرده نصب می‌کرد.
+     حالا فقط وقتی `npx` پیشنهاد می‌شود که نام دقیق در خط نصب README آمده باشد (`npm i` / `yarn add` / `pnpm add` / `npx`).
+  2. وارد کردن یک سایت به‌عنوان پروژهٔ قابل‌ویرایش، فقط به‌خاطر نداشتن فایل LICENSE، تیک
+     «مسئولیت ریسک را می‌پذیرم» می‌خواست؛ اگرچه هیچ کدی اجرا نمی‌شود. گیت ریسک حالا فقط برای
+     استراتژی‌هایی است که کد اجرا می‌کنند و یافته‌ها همچنان در مودال نمایش داده می‌شوند.
 

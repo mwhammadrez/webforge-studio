@@ -19,7 +19,7 @@
 | **ساخت با AI** | پلن سایت (برند، پالت، تایپوگرافی، صفحات) → تأیید → تولید قطعی `tokens.css` و پوسته → تولید صفحه‌به‌صفحه با DeepSeek؛ خروجی کامل، بدون CDN و اسکریپت خارجی. |
 | **تستر جامع** | HTML، لینک‌ها، دسترس‌پذیری با axe-core (WCAG 2.2 AA)، SEO، کنسول، پرفورمنس، ریسپانسیو و امنیت پایه؛ گزارش JSON و امتیاز. |
 | **ابزارها (Plugins)** | مانیفست JSON، فرم فارسی خودکار، اجرای Node/Python/EXE/Shell، لاگ زنده، تایم‌اوت، لغو، مجوز شبکه/نوشتن، نصب وابستگی با `--ignore-scripts` و تاریخچه. |
-| **کشف و اتصال ابزار** | جستجوی GitHub → بازرسی خودکار (دانلود امن، اسکن اسکریپت/هوک/باینری، سطح ریسک) → هوش مصنوعی طرح اتصال می‌چیند (`npx`، Python، پروژهٔ استاتیک یا دستور دستی) و برنامه فقط با فایل‌ها و پیکره‌هایی که روی دیسک تأیید شده‌اند جلو می‌رود؛ ابزارهای با ریسک بالا بدون تأیید صریح متصل نمی‌شوند. |
+| **کشف و اتصال ابزار** | جستجوی GitHub → بازرسی خودکار (دانلود امن، اسکن اسکریپت/هوک/باینری، سطح ریسک) → هوش مصنوعی طرح اتصال می‌چیند (`npx`، Python، پروژهٔ استاتیک یا دستور دستی) و برنامه فقط با فایل‌ها و پیکره‌هایی که روی دیسک تأیید شده‌اند جلو می‌رود؛ ابزاری که کد اجرا می‌کند و ریسکش بالاست بدون تأیید صریح متصل نمی‌شود. |
 | **تنظیمات** | تم دارک/لایت/سیستم، مسیر پروژه‌ها، بازهٔ پورت، محدودیت‌های استخراج، کلید DeepSeek رمزنگاری‌شده، خروجی JSON و عیب‌یابی. |
 
 نماهای بیشتر: [ویرایشگر](docs/screenshots/workspace.png) · [تستر](docs/screenshots/qa.png) · [تم روشن](docs/screenshots/settings-light.png)
@@ -55,8 +55,8 @@ npm run dev
 npm run build          # بیلد Electron
 npm run package:win    # ویندوز (nsis + portable)
 npm run package:linux  # لینوکس AppImage/dir
-npm run verify         # typecheck + ۳۳ تست واحد + placeholder gate + build
-npm run test:e2e       # ۱۴ سناریوی واقعی روی برنامهٔ Electron (نیاز به بیلد)
+npm run verify         # typecheck + ۳۶ تست واحد + placeholder gate + build
+npm run test:e2e       # ۱۴ سناریوی واقعی روی Electron (+۲ سناریوی اختیاری با اینترنت)
 ```
 
 ---
@@ -160,7 +160,7 @@ my-site/
 ```text
 npm run verify
 → typecheck: OK
-→ tests: 33 passed (7 files)
+→ tests: 36 passed (7 files)
 → placeholder gate: passed
 → build: OK
 ```
@@ -185,6 +185,15 @@ tests/e2e/editor-deep.spec.ts (6 passed)
 ✓ class add + attribute save/delete (بدون فاصلهٔ اضافه)
 ✓ insert-after + hide + remove element
 ✓ undo restores the previous file state
+```
+
+دو سناریوی اختیاری که واقعاً به GitHub درخواست می‌دهند با متغیر محیطی فعال می‌شوند
+(بدون آن به‌عنوان skipped گزارش می‌شوند تا در CI اجرا نشوند):
+
+```bash
+WEBFORGE_LIVE_NET=1 npm run test:e2e    # tests/e2e/discover-live.spec.ts
+✓ جستجو → باز کردن مخزن → بازرسی → طرح اتصال
+✓ مخزن به‌عنوان پروژهٔ قابل‌ویرایش در پوشهٔ پروژه‌ها ساخته می‌شود
 ```
 
 روی ویندوز واقعی ساخته و اجرا شده: `npm run package:win` → نصب‌کنندهٔ NSIS و نسخهٔ portable، و باینری بسته‌بندی‌شده بالا آمده است.

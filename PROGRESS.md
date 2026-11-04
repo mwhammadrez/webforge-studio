@@ -5,8 +5,8 @@
 | نسخه | 1.2.0 |
 | تاریخ | 2026-11-04 |
 | Typecheck | ✅ صفر خطا |
-| Unit/Integration | ✅ 33/33 در 7 فایل |
-| E2E Electron | ✅ 14/14 (8 در `app.spec.ts` + 6 در `editor-deep.spec.ts`) |
+| Unit/Integration | ✅ 36/36 در 7 فایل |
+| E2E Electron | ✅ 14/14 (8 در `app.spec.ts` + 6 در `editor-deep.spec.ts`) + ۲ سناریوی اختیاری `discover-live.spec.ts` با اینترنت واقعی |
 | Placeholder gate | ✅ |
 | Build | ✅ main/preload/renderer |
 | Linux dir package | ✅ `release/linux-unpacked` |

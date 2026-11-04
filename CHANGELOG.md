@@ -12,10 +12,14 @@
 - Inspector rebuilt around three tabs — محتوا / استایل / ساختار — for any selected element:
   text runs, colour and box-model editing, class add/remove, `data-*` attribute save and
   delete, insert markup before/after, hide and remove element.
-- High-risk plans are refused server-side unless the user explicitly forces them.
+- High-risk plans that would *run* code are refused server-side unless the user forces them.
 - E2E spec `tests/e2e/editor-deep.spec.ts` (6 scenarios) drives the real renderer:
   style → live preview (`toHaveCSS`), selection across reload, text replacement,
   class/attribute edits, inserted markup, deletion and undo. 14 E2E scenarios in total.
+- Opt-in `tests/e2e/discover-live.spec.ts` (2 scenarios) drives the whole Discover flow against
+  live GitHub (`WEBFORGE_LIVE_NET=1`); it is reported as skipped otherwise.
+- The placeholder gate now distinguishes an opt-in conditional skip (`test.skip(!env, 'reason')`)
+  from an unconditional stub, which it still rejects.
 
 ### Fixed
 - Selection mode was lost after every saved edit because the preview reloads; the reloaded
@@ -28,8 +32,14 @@
   CLI is resolved to `npm-cli.js` and run through Electron in Node mode.
 - Dead contract fields (`clickedText`, `hasElementChildren`) are now actually produced and
   surfaced; the unreachable `projectPath` branch in Discover was removed.
+- Importing a site as an editable project demanded the scary «مسئولیت ریسک را می‌پذیرم» checkbox
+  whenever the repository had no LICENSE file, even though copying files executes nothing.
+  The gate now applies only to strategies that run code; the findings stay visible.
 
 ### Security
+- An `npx <package>` plan is only accepted when the repository README actually documents that
+  exact package name. Previously the repo's `package.json` name alone was enough, so a
+  never-published name would have installed whatever squatter owns it on the registry.
 - Every message into and out of the sandboxed preview iframe is gated by a per-session
   token plus origin and `event.source` checks.
 - Shell-open refuses executable/script extensions (`exe`, `msi`, `bat`, `ps1`, `js`, …),
@@ -40,7 +50,8 @@
 ### Verified
 - Built and smoke-tested on real Windows 10: `npm run package:win` produces the NSIS
   installer and the portable exe, and the packaged binary starts (`APP_READY`).
-  Unit tests: 33 passing across 7 files.
+  Unit tests: 36 passing across 7 files; E2E: 14 passing, 2 opt-in scenarios also passing
+  against live GitHub.
 
 ## 1.1.0 — 2026-11-02
 
