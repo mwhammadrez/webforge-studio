@@ -76,8 +76,7 @@ export default function Workspace(): React.JSX.Element {
         const files = flatten(root ? (root.children ?? []) : nodes).filter(
           (node) => !node.isDirectory && /\.html?$/i.test(node.name) && node.name !== 'admin.html'
         )
-        const initial =
-          files.find((node) => /(^|\/)index\.html?$/i.test(node.relativePath)) ?? files[0]
+        const initial = shallowestIndex(files) ?? files[0]
         if (initial) {
           setPageFile(initial.relativePath)
           setSelectPage(initial.relativePath)
@@ -100,6 +99,12 @@ export default function Workspace(): React.JSX.Element {
   useEffect(() => {
     if (project) void loadProject(project)
   }, [project, loadProject])
+
+  const selectionRef = useRef({ mode: false, selector: null as string | null })
+
+  useEffect(() => {
+    selectionRef.current = { mode: selectMode, selector: selected?.selector ?? null }
+  }, [selectMode, selected])
 
   useEffect(() => {
     const frameWindow = frameRef.current?.contentWindow
@@ -124,7 +129,13 @@ export default function Workspace(): React.JSX.Element {
           setPageFile(hasClean ? `clean/${page}` : page)
         }
       }
-      if (data.type === 'webforge:ready') setPagePath(data.pagePath ?? '')
+      if (data.type === 'webforge:ready') {
+        setPagePath(data.pagePath ?? '')
+        // A saved edit reloads the frame, and the reloaded page boots with selection off.
+        const { mode, selector } = selectionRef.current
+        sendToFrame({ type: 'webforge:mode', enabled: mode })
+        if (mode && selector) sendToFrame({ type: 'webforge:highlight', selector })
+      }
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
@@ -229,7 +240,7 @@ export default function Workspace(): React.JSX.Element {
     for (const action of actions) {
       if (!(await save(action, false))) return
     }
-    if (actions.length) toast('success', 'تغییرات ذخیره شد', `${actions.length} تغییر اعمال شد`)
+    if (actions.length) toast('success', 'تغییرات ذخیره شد', `${fa(actions.length)} تغییر اعمال شد`)
   }
 
   const replaceImage = async (): Promise<void> => {
@@ -914,6 +925,14 @@ function flatten(nodes: FileNode[]): FileNode[] {
   }
   walk(nodes)
   return result
+}
+
+/** Extracted sites keep one index.html per page; the homepage is the shallowest one. */
+function shallowestIndex(files: FileNode[]): FileNode | null {
+  const depth = (node: FileNode): number => node.relativePath.split(/[\\/]/).length
+  return files
+    .filter((node) => /(^|\/)index\.html?$/i.test(node.relativePath))
+    .reduce<FileNode | null>((shallowest, node) => (!shallowest || depth(node) < depth(shallowest) ? node : shallowest), null)
 }
 
 function encodePath(value: string): string {
