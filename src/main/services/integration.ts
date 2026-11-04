@@ -227,7 +227,10 @@ export class IntegrationService {
     if (plan.strategy === 'npm-package' && !findNpmLauncher('npx')) {
       throw new AppError('NPM_NOT_FOUND', 'برای اجرای ابزارهای npm به Node و npm روی این سیستم نیاز است.')
     }
-    if (!options.force && report.riskLevel === 'high') {
+    // Copying a site into the projects folder executes nothing, so the explicit risk
+    // acceptance is only required for strategies that run third-party code.
+    const runsCode = plan.strategy !== 'static-project'
+    if (runsCode && !options.force && report.riskLevel === 'high') {
       throw new AppError('INTEGRATION_BLOCKED', 'ریسک این ابزار بالاست. برای ادامه، تأیید صریح لازم است.')
     }
     if (!fs.existsSync(evidence.sourceDir)) {
@@ -434,7 +437,8 @@ export class IntegrationService {
       }
       case 'npm-package': {
         const name = (design.entry ?? evidence.packageJson?.name ?? '').trim()
-        if (!PACKAGE_NAME.test(name)) return null
+        // A registry name that the author never documented may belong to a squatter.
+        if (!PACKAGE_NAME.test(name) || !documentsNpmInstall(evidence.readme, packageSpecifier(name))) return null
         return {
           ...base,
           strategy: 'npm-package',
@@ -542,7 +546,10 @@ export class IntegrationService {
         ]
       })
     }
-    if (evidence.runtime === 'node' && packageName) {
+    // The repo name alone is not proof the package is published; running `npx <name>` on an
+    // unpublished name would fetch whatever squatter owns it. Only trust an install line the
+    // author actually wrote in the README.
+    if (evidence.runtime === 'node' && packageName && documentsNpmInstall(evidence.readme, packageName)) {
       return build('npm-package', {
         command: 'npx',
         entry: packageName,
@@ -806,7 +813,16 @@ function packageSpecifier(name: string): string {
   return name.slice(0, at)
 }
 
-function planDemoUsage(plan: ToolConnectPlan): string {  if (plan.strategy === 'manual') return ''
+/** True only when the author wrote an install/run line for this exact package name. */
+function documentsNpmInstall(readme: string, name: string): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Scoped names start with `@`, where \b never matches; guard both edges instead.
+  const mention = `(?<![\\w./-])${escaped}(?![\\w/-])`
+  return new RegExp(`(?:npm\\s+(?:i|install|add)|yarn\\s+add|pnpm\\s+add|bun\\s+add)[^\\n]*${mention}|npx\\s+${mention}`, 'i').test(readme)
+}
+
+function planDemoUsage(plan: ToolConnectPlan): string {
+  if (plan.strategy === 'manual') return ''
   if (plan.strategy === 'static-project') return 'پروژهٔ استاتیک در ویرایشگر بصری'
   const head = plan.strategy === 'npm-package' ? `npx ${plan.entry ?? ''}` : `${plan.strategy === 'local-python' ? 'python' : 'node'} ${plan.entry ?? ''}`
   return `${head} ${plan.demoArguments}`.trim()

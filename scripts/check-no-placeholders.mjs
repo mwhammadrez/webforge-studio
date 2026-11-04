@@ -13,7 +13,9 @@ const BANNED = [
   { pattern: /same as above/gi, label: 'same as above' },
   { pattern: /lorem ipsum/gi, label: 'lorem ipsum' },
   { pattern: /throw new Error\(['"]not implemented/gi, label: 'not implemented throw' },
-  { pattern: /\.skip\s*\(/g, label: 'skipped test (.skip)' },
+  { pattern: /\.skip\s*\(\s*\)/g, label: 'skipped test (.skip)' },
+  // `test.skip(!process.env.X, 'reason')` is an opt-in test, not a stub; `test.skip('name', …)` is.
+  { pattern: /^\s*(?:test|it|describe|suite)\.skip\s*\(\s*['"`]/g, label: 'unconditionally skipped test' },
   { pattern: /\.only\s*\(/g, label: 'focused test (.only)' },
   { pattern: /\bxit\s*\(/g, label: 'xit test' },
   { pattern: /\bxfail\b/g, label: 'xfail' },

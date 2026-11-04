@@ -311,7 +311,9 @@ function ConnectModal({
   toast: ReturnType<typeof useApp.getState>['toast']
 }): React.JSX.Element {
   const plan = report.connect
-  const needsForce = report.riskLevel === 'high'
+  // Importing a site as a project runs nothing; only strategies that execute code need the
+  // explicit risk acceptance, otherwise every site without a LICENSE file looks dangerous.
+  const needsForce = report.riskLevel === 'high' && plan.strategy !== 'static-project'
   const canConnect = plan.actionable && (!needsForce || force)
 
   return (

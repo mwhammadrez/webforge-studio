@@ -109,13 +109,73 @@ describe('IntegrationService connect plans', () => {
     const root = tempDir('webforge-connect-npx-')
     write(root, 'src/cli.ts')
     const plan = makeService().heuristicPlan(
-      evidence(root, { runtime: 'node', bin: 'dist/cli.js', packageJson: { name: '@scope/tool', bin: 'dist/cli.js' } }),
+      evidence(root, {
+        runtime: 'node',
+        bin: 'dist/cli.js',
+        readme: '## Install\n\n```sh\nnpm install --global @scope/tool\n```',
+        packageJson: { name: '@scope/tool', bin: 'dist/cli.js' }
+      }),
       verdict
     )
     expect(plan.strategy).toBe('npm-package')
     expect(plan.command).toBe('npx')
     expect(plan.args.slice(0, 2)).toEqual(['--yes', '@scope/tool'])
     expect(plan.permissions.network).toBe(true)
+  })
+
+  it('refuses npx for a package name the README never documents', () => {
+    const root = tempDir('webforge-connect-squatter-')
+    write(root, 'src/cli.ts')
+    const plan = makeService().heuristicPlan(
+      evidence(root, { runtime: 'node', bin: 'dist/cli.js', packageJson: { name: 'unpublished-name', bin: 'dist/cli.js' } }),
+      verdict
+    )
+    expect(plan.strategy).toBe('manual')
+    expect(plan.actionable).toBe(false)
+    expect(plan.args).not.toContain('--yes')
+  })
+
+  it('refuses an AI npm-package plan for an undocumented name', () => {
+    const root = tempDir('webforge-connect-ai-squatter-')
+    const plan = makeService().normalizePlan(
+      {
+        strategy: 'npm-package',
+        entry: 'taken-by-squatter',
+        inputs: [],
+        outputs: [],
+        permissions: { network: true, projectWrite: false, environment: [] },
+        timeoutSeconds: 60,
+        needsDependencies: false,
+        demoArguments: '',
+        rationale: '',
+        steps: [],
+        confidence: 0.9
+      },
+      evidence(root, { runtime: 'node', packageJson: { name: 'taken-by-squatter' } })
+    )
+    expect(plan).toBeNull()
+  })
+
+  it('accepts an AI npm-package plan when the README shows the install line', () => {
+    const root = tempDir('webforge-connect-ai-npx-')
+    const plan = makeService().normalizePlan(
+      {
+        strategy: 'npm-package',
+        entry: 'real-tool@2.1.0',
+        inputs: [],
+        outputs: [],
+        permissions: { network: true, projectWrite: false, environment: [] },
+        timeoutSeconds: 60,
+        needsDependencies: false,
+        demoArguments: '',
+        rationale: '',
+        steps: [],
+        confidence: 0.9
+      },
+      evidence(root, { runtime: 'node', readme: 'Install it with `yarn add real-tool`.', packageJson: { name: 'real-tool' } })
+    )
+    expect(plan?.entry).toBe('real-tool@2.1.0')
+    expect(plan?.args).toEqual(['--yes', 'real-tool', '{{arguments}}'])
   })
 
   it('turns a static site into an editable project instead of a plugin', () => {
